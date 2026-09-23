@@ -247,8 +247,8 @@ export default {
         const today=now.toISOString().slice(0,10);
         const weekStart=new Date(now); weekStart.setDate(now.getDate()-6);
         const weekStartIso=weekStart.toISOString();
-        const todayOrders=orders.filter(x=>String(x.created_at||"").slice(0,10)===today && x.status!=="Batal");
-        const weekOrders=orders.filter(x=>String(x.created_at||"")>=weekStartIso && x.status!=="Batal");
+        const todayOrders=orders.filter(x=>String(x.created_at||"").slice(0,10)===today && !["Batal","Menunggu Pembayaran"].includes(String(x.status||"")));
+        const weekOrders=orders.filter(x=>String(x.created_at||"")>=weekStartIso && !["Batal","Menunggu Pembayaran"].includes(String(x.status||"")));
         const salesToday=todayOrders.reduce((n,x)=>n+Number(x.total||0),0);
         const salesWeek=weekOrders.reduce((n,x)=>n+Number(x.total||0),0);
         const topMap={};
@@ -257,7 +257,7 @@ export default {
           topMap[key]=(topMap[key]||0)+Number(i.qty||0);
         }));
         const topProducts=Object.entries(topMap).map(([name,qty])=>({name,qty})).sort((a,b)=>b.qty-a.qty).slice(0,5);
-        const statusCounts={"Menunggu Pembayaran":0,Baru:0,Diproses:0,Siap:0,Selesai:0,Batal:0};
+        const statusCounts={"Menunggu Pembayaran":0,Dibayar:0,Baru:0,Diproses:0,Siap:0,Selesai:0,Batal:0};
         orders.forEach(o=>{const s=String(o.status||"Baru");if(Object.prototype.hasOwnProperty.call(statusCounts,s))statusCounts[s]++;});
         const url = new URL(request.url);
         const reportStart = url.searchParams.get("start") || String(body.start || "").trim() || null;
