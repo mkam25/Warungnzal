@@ -365,12 +365,13 @@ function renderProducts(){
   });
   if(!filtered.length){box.innerHTML='<div class="empty">Menu tidak ditemukan.</div>';return}
   box.innerHTML=filtered.map(p=>{
-    const photo=p.image ? '<img src="'+escapeAttr(String(p.image).trim())+'" alt="'+escapeAttr(p.name)+'" loading="eager" decoding="async" style="width:100%;height:100%;object-fit:cover;object-position:center;border-radius:16px;display:block" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'block\'"><div class="ice" style="--flavor:'+(p.bg||"#f7c6d9")+';display:none"></div>' : '<div class="ice" style="--flavor:'+(p.bg||"#f7c6d9")+'"></div>';
+    const photo=p.image ? '<div class="menu-photo" data-product-id="'+Number(p.id)+'"><div class="ice" style="--flavor:'+(p.bg||"#f7c6d9")+'"></div></div>' : '<div class="ice" style="--flavor:'+(p.bg||"#f7c6d9")+'"></div>';
     const stock=Math.max(0,Number(p.stock)||0);
     const low=stock>0 && stock<=Math.max(0,Number(p.reorder_level)||5);
     const badge=stock<=0?'<span class="stock-badge stock-out">Habis</span>':low?'<span class="stock-badge stock-low">Stok menipis • '+stock+'</span>':'<span class="stock-badge stock-ok">Stok '+stock+'</span>';    const cat='<span style="display:inline-block;margin:5px auto 0;padding:4px 8px;border-radius:99px;background:#fff0f5;color:var(--p);font-size:10px;font-weight:800">'+escapeHtml(p.category||"Lainnya")+'</span>';
     return '<article class="card"><div class="pic" style="--bg:'+(p.bg||"#f7c6d9")+'">'+photo+'</div><h3>'+(p.emoji||"🍦")+' '+escapeHtml(p.name)+'</h3><div class="price">'+money(Number(p.price)||0)+'</div><div class="sub">'+escapeHtml(p.description||"Ice Cream Gabin")+'</div>'+cat+badge+'<button class="add" '+(stock<=0?'disabled':'')+' onclick="add('+Number(p.id)+')">'+(stock<=0?'Habis':' + Tambah')+'</button></article>';
   }).join("");
+  filtered.forEach(p=>{if(!p.image)return;const holder=box.querySelector('.menu-photo[data-product-id="'+Number(p.id)+'"]');if(!holder)return;const img=document.createElement("img");img.alt=p.name||"Menu";img.loading="eager";img.decoding="async";img.style.cssText="width:100%;height:100%;object-fit:cover;object-position:center;border-radius:16px;display:block";img.onerror=()=>{img.remove()};img.src=String(p.image).trim();holder.innerHTML="";holder.appendChild(img)});
 }
 function renderCategories(){
   const box=$("categoryChips"); if(!box)return;
