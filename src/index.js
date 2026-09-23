@@ -273,7 +273,7 @@ export default {
             ? await env.DB.prepare(reportQuery).bind(...reportParams).all()
             : await env.DB.prepare(reportQuery).all();
         } catch(e) { console.error("admin-data report:",e); }
-        const reportOrders = reportResult.results || [];
+        const reportOrders = (reportResult.results || []).filter(x=>x.status!=="Menunggu Pembayaran");
         const reportSummary = {
           orders: reportOrders.length,
           sales: reportOrders.reduce((n,x)=>n+Number(x.total||0),0),
@@ -337,9 +337,12 @@ export default {
         const allowed = ["Menunggu Pembayaran","Dibayar","Baru","Diproses","Siap","Selesai","Batal"];
         const status = allowed.includes(body.status) ? body.status : "Baru";
         const id=String(body.id||"");
-        const order=await env.DB.prepare("SELECT id,status,items FROM orders WHERE id=? LIMIT 1").bind(id).first();
+        const order=await env.DB.prepare("SELECT id,status,items,payment_method FROM orders WHERE id=? LIMIT 1").bind(id).first();
         if(!order)return json({ok:false,message:"Pesanan tidak ditemukan."},404);
         if(order.status==="Batal" && status!=="Batal")return json({ok:false,message:"Pesanan yang sudah dibatalkan tidak bisa diaktifkan kembali."},400);
+        if(["Diproses","Siap","Selesai"].includes(status) && ["QRIS","Transfer"].includes(String(order.payment_method||"")) && order.status!=="Dibayar"){
+          return json({ok:false,message:"Pembayaran QRIS/Transfer belum dikonfirmasi. Ubah status menjadi Dibayar terlebih dahulu."},400);
+        }
         if(status==="Batal" && order.status!=="Batal"){
           const items=JSON.parse(order.items||"[]");
           const statements=items.map(item=>env.DB.prepare("UPDATE products SET stock=stock+? WHERE id=?").bind(Math.max(0,Number(item.qty)||0),Number(item.id)));
