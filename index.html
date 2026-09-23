@@ -13,19 +13,19 @@ html{scroll-behavior:smooth}
 body{margin:0;background:linear-gradient(#fffaf1,#fff0f6);color:var(--b);font-family:Poppins,Arial,sans-serif}
 .top{background:var(--p);color:#fff;text-align:center;padding:8px;font-size:13px;font-weight:700}
 nav{position:sticky;top:0;z-index:20;background:#fffdf9ee;backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-.nav{max-width:1100px;margin:auto;padding:11px 15px;display:flex;justify-content:space-between;align-items:center}
-.logo{font:800 27px 'Baloo 2';color:var(--p)}
-button{font:inherit}.pill{border:0;border-radius:99px;padding:10px 14px;font-weight:700;cursor:pointer}
+.nav{max-width:1240px;margin:auto;padding:13px 22px;display:flex;justify-content:space-between;align-items:center}
+.logo{font:800 29px 'Baloo 2';color:var(--p)}
+button{font:inherit}.pill{border:0;border-radius:99px;padding:10px 15px;font-weight:700;cursor:pointer;transition:.2s}
 .admin{background:#fff0f5;color:var(--p)}.cart{background:var(--b);color:#fff;margin-left:6px}
-main{max-width:1100px;margin:auto;padding:18px}
-.hero{background:#fff;border-radius:27px;overflow:hidden;box-shadow:0 10px 30px #5c291614}.hero img{width:100%;display:block}
+main{max-width:1240px;margin:auto;padding:24px}
+.hero{background:#fff;border-radius:30px;overflow:hidden;box-shadow:0 12px 35px #5c291614}.hero img{width:100%;display:block;max-height:520px;object-fit:cover;object-position:center}
 .actions{text-align:center;padding:15px}.cta{border:0;border-radius:99px;padding:12px 20px;margin:4px;font-weight:800;cursor:pointer}
 .pink{background:var(--p);color:#fff}.green{background:var(--g);color:#fff}
 .title{text-align:center;margin:30px 0 18px}.title h1,h2,h3{font-family:'Baloo 2';margin:0}
 .title h1{font-size:36px}.title p{font-size:14px;color:#876c61}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}
-.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:11px;box-shadow:0 8px 25px #5c291410}
-.pic{height:145px;aspect-ratio:1/1;border-radius:16px;background:linear-gradient(135deg,#fff0e3,var(--bg));display:grid;place-items:center;overflow:hidden}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:12px;box-shadow:0 8px 25px #5c291410;min-width:0}
+.pic{width:100%;height:auto;aspect-ratio:1/1;border-radius:16px;background:linear-gradient(135deg,#fff0e3,var(--bg));display:grid;place-items:center;overflow:hidden}
 .ice{width:105px;height:72px;background:var(--flavor);border-radius:15px 15px 20px 20px;box-shadow:0 9px 0 #c98b42,0 13px 20px #0002}
 .card h3{font-size:22px;margin-top:8px}.price{color:var(--p);font-weight:800}
 .sub{font-size:12px;color:#92756b;margin-bottom:9px}.add{width:100%;border:0;border-radius:12px;padding:10px;background:#fff0f5;color:var(--p);font-weight:800;cursor:pointer}
@@ -60,8 +60,50 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
 .editbox{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .editbox input,.editbox select{padding:7px;border:1px solid #ddd;border-radius:8px;min-width:90px}
 .smallbtn{border:0;border-radius:8px;padding:7px 9px;font-weight:700;cursor:pointer}
-@media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:560px){main{padding:10px}.grid{gap:9px}.pic{height:auto;aspect-ratio:1/1}.info{grid-template-columns:1fr}.title h1{font-size:30px}}
+@media(min-width:1200px){
+  .grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:20px}
+  .card{padding:13px}
+  .pic{border-radius:18px}
+  .title{margin:38px 0 22px}
+  .title h1{font-size:42px}
+}
+@media(min-width:851px) and (max-width:1199px){
+  main{padding:20px}
+  .grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:15px}
+}
+@media(max-width:850px){
+  main{padding:14px}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .logo{font-size:25px}
+  .hero{border-radius:24px}
+}
+@media(max-width:560px){
+  main{padding:10px}
+  .nav{padding:9px 10px}
+  .logo{font-size:23px}
+  .pill{padding:9px 11px}
+  .grid{gap:9px}
+  .card{padding:8px;border-radius:16px}
+  .pic{border-radius:13px}
+  .card h3{font-size:17px;margin:8px 5px 3px;line-height:1.15}
+  .price{font-size:14px}
+  .sub{font-size:10px;margin-bottom:6px}
+  .add{padding:9px 6px;border-radius:10px;font-size:13px}
+  .info{grid-template-columns:1fr}
+  .title{margin:24px 0 14px}
+  .title h1{font-size:29px;line-height:1.05}
+  .title p{font-size:12px}
+  .actions{padding:10px}
+  .cta{padding:11px 15px;font-size:13px}
+  .hero{border-radius:20px}
+}
+@media(max-width:380px){
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+  .card{padding:7px}
+  .card h3{font-size:15px}
+  .add{font-size:12px}
+  .admin{display:none}
+}
 </style>
 </head>
 <body>
