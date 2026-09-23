@@ -1,11 +1,1 @@
-{
-  "name": "warung-nzal-v3",
-  "version": "1.0.0",
-  "private": true,
-  "scripts": {
-    "build": "echo Warung Nzal siap deploy"
-  },
-  "dependencies": {
-    "@netlify/blobs": "^9.1.0"
-  }
-}
+{"name":"warung-nzal-netlify","private":true,"type":"module","dependencies":{"@netlify/blobs":"^10.0.0"}}
