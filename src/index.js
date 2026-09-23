@@ -86,7 +86,7 @@ export default {
       return env.ASSETS.fetch(adminUrl);
     }
 
-    if (!url.pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
+    if (url.pathname !== "/api" && !url.pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
 
     if (!env.DB) return json({ok:false,message:"D1 belum terpasang sebagai binding DB di Worker."},500);
 
