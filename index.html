@@ -44,10 +44,7 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
 .modal{inset:0;background:#0007;display:none;align-items:center;justify-content:center;padding:15px}.modal.on{display:flex}
 .box{width:min(900px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:22px;padding:18px}
 .checkout-box{width:min(520px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:22px;padding:20px}
-.checkout-summary{background:#fff7fa;border:1px solid var(--line);border-radius:16px;padding:14px;margin:12px 0}
-.pay-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
-.pay-btn{border:1px solid #ead6de;background:#fff;border-radius:12px;padding:11px;font-weight:800;cursor:pointer}
-.pay-btn.active{background:var(--p);color:#fff;border-color:var(--p)}
+.checkout-summary{background:#fff7fa;border:1px solid var(--line);border-radius:16px;padding:14px;margin:12px 0}.checkout-step{display:flex;align-items:center;gap:8px;margin:2px 0 12px;font-size:12px;color:#92756b}.checkout-step b{color:var(--p)}.checkout-label{display:block;margin:14px 0 7px;font-size:13px;font-weight:800}.pay-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}.pay-btn{border:1px solid #ead6de;background:#fff;border-radius:14px;padding:12px 8px;font-weight:800;cursor:pointer;transition:.18s}.pay-btn:hover{transform:translateY(-1px);border-color:#f3b6c9}.pay-btn.active{background:var(--p);color:#fff;border-color:var(--p);box-shadow:0 5px 14px #ff3f8626}
 .money-input{width:100%;padding:13px;border:1px solid #ddd;border-radius:12px;font-size:18px;font-weight:700}
 .customer-form{display:grid;gap:8px;margin:12px 0}.customer-form input,.customer-form textarea{width:100%;padding:12px;border:1px solid #ddd;border-radius:12px;font:inherit}.customer-form textarea{min-height:70px;resize:vertical}
 .change-box{display:flex;justify-content:space-between;padding:12px;border-radius:12px;background:#effaf3;margin-top:10px;font-weight:800}
@@ -126,7 +123,7 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
   .pay-grid{grid-template-columns:1fr}
   .receipt-actions{grid-template-columns:1fr}
   .stats{grid-template-columns:repeat(2,1fr)}
-  .checkout-box{padding:14px;border-radius:18px}
+  .checkout-box{padding:14px;border-radius:18px}.checkout-step{font-size:11px}.pay-btn{padding:11px 7px}
 }
 @media(max-width:380px){
   .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
@@ -207,25 +204,25 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
 
 <div class="modal" id="checkoutModal">
   <div class="checkout-box">
-    <div class="head"><h2>💳 Pembayaran</h2><button class="close" onclick="closeCheckout()">×</button></div>
+    <div class="head"><h2>💳 Checkout</h2><button class="close" onclick="closeCheckout()">×</button></div>
+    <div class="checkout-step"><span>1. Pesanan</span><span>→</span><b>2. Data & Pembayaran</b><span>→</span><span>3. Selesai</span></div>
     <div class="checkout-summary">
-      <div id="checkoutItems"></div>
+      <div style="font-size:13px;font-weight:800;margin-bottom:6px">Ringkasan Pesanan</div><div id="checkoutItems"></div>
       <div class="receipt-total"><span>Total</span><span id="checkoutTotal">Rp0</span></div>
     </div>
-    <div class="customer-form"><b>📦 Data Pemesan</b><input id="customerName" placeholder="Nama pemesan *"><input id="customerPhone" type="tel" placeholder="Nomor WhatsApp *"><textarea id="customerAddress" placeholder="Alamat / catatan pengantaran"></textarea></div>
+    <div class="customer-form"><b>📦 Data Pemesan</b><input id="customerName" placeholder="Nama pemesan *" autocomplete="name"><input id="customerPhone" type="tel" placeholder="Nomor WhatsApp *" autocomplete="tel"><textarea id="customerAddress" placeholder="Alamat / catatan pengantaran (opsional)" autocomplete="street-address"></textarea></div>
     <div style="display:flex;gap:8px;margin:12px 0;flex-wrap:wrap"><input id="promoCode" placeholder="Kode voucher" style="flex:1;min-width:150px;text-transform:uppercase"><button class="cta" onclick="checkPromo()">Pakai Promo</button></div><div id="promoInfo" style="font-size:12px;margin-bottom:10px"></div>
-    <b>Metode Pembayaran</b>
+    <span class="checkout-label">💳 Metode Pembayaran</span>
     <div class="pay-grid">
       <button class="pay-btn active" data-pay="Tunai" onclick="selectPayment('Tunai',this)">💵 Tunai</button>
       <button class="pay-btn" data-pay="QRIS" onclick="selectPayment('QRIS',this)">📱 QRIS</button>
       <button class="pay-btn" data-pay="Transfer" onclick="selectPayment('Transfer',this)">🏦 Transfer</button>
     </div><div id="paymentInfo" style="margin-top:10px"></div>
-    <div id="cashArea">
-      <label>Uang diterima</label>
+    <div id="cashArea"><label class="checkout-label" style="margin-top:12px">💵 Uang diterima</label>
       <input id="paid" class="money-input" type="number" min="0" placeholder="Contoh: 50000" oninput="updateChange()">
       <div class="change-box"><span>Kembalian</span><span id="change">Rp0</span></div>
     </div>
-    <button class="full green" style="margin-top:14px" onclick="payNow()">✅ Bayar & Simpan Transaksi</button>
+    <button id="paySubmit" class="full green" style="margin-top:14px" onclick="payNow()">✅ Bayar & Simpan Pesanan</button>
   </div>
 </div>
 
