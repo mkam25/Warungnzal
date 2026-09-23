@@ -18,7 +18,7 @@
 <div class="wrap">
 <div id="loginBox" class="login"><h1>⚙️ Admin Warung Nzal</h1><p class="muted">Masuk ke halaman administrasi.</p><input id="password" type="password" placeholder="Password admin"><button class="btn pink full" onclick="login()">Masuk</button><p id="loginMsg" class="muted"></p></div>
 <div id="app">
-<div class="top"><div><div class="logo">🍨 Warung Nzal — ADMIN</div><div class="muted">Kelola toko tanpa bercampur dengan halaman pembeli.</div></div><div class="row"><button class="btn light" onclick="refresh()">↻ Refresh</button><button class="btn dark" onclick="logout()">Keluar</button></div></div>
+<div class="top"><div><div class="logo">🍨 Warung Nzal — ADMIN</div><div class="muted">Kelola toko tanpa bercampur dengan halaman pembeli.</div></div><div class="row"><button class="btn light" onclick="refresh()">↻ Refresh</button><button class="btn pink" onclick="openStore()">🛍️ Lihat Toko</button><button class="btn dark" onclick="logout()">Keluar</button></div></div>
 <div class="tabs">
 <button class="tab active" onclick="tab('dashboard',this)">Dashboard</button><button class="tab" onclick="tab('products',this)">Menu</button><button class="tab" onclick="tab('orders',this)">Pesanan</button><button class="tab" onclick="tab('reports',this)">Laporan</button><button class="tab" onclick="tab('customers',this)">Pelanggan</button><button class="tab" onclick="tab('promos',this)">Promo</button>
 </div>
@@ -60,4 +60,5 @@ function renderPromos(){$("promoTable").innerHTML=(data.promotions||[]).map(p=>'
 async function savePromo(){const code=$("promoCode").value.trim().toUpperCase(),type=$("promoType").value,value=Number($("promoValue").value)||0;if(!code)return alert("Kode wajib.");const r=await api("save-promo",{promo:{code,type,value,active:true}});if(!r.ok)return alert(r.message||"Gagal");$("promoCode").value="";$("promoValue").value="";await refresh()}
 async function loadReport(silent=false){const r=await api("admin-data",{start:$("rs").value,end:$("re").value});if(!r.ok){if(!silent)alert(r.message||"Gagal");return}data.report=r.report||{orders:[],summary:{}};const x=data.report.summary||{};$("reportSummary").innerHTML='<div class="row"><span class="badge">Pesanan: '+x.orders+'</span><span class="badge">Penjualan: '+money(x.sales)+'</span><span class="badge">Tunai: '+money(x.cash)+'</span><span class="badge">QRIS: '+money(x.qris)+'</span><span class="badge">Transfer: '+money(x.transfer)+'</span></div>';$("reportTable").innerHTML=(data.report.orders||[]).map(o=>'<tr><td>'+esc(o.id)+'</td><td>'+new Date(o.created_at).toLocaleString("id-ID")+'</td><td>'+esc(o.customer_name||"-")+'</td><td>'+money(o.total)+'</td><td>'+esc(o.payment_method||"")+'</td></tr>').join("")}
 if(token){showApp();refresh()}else{$("password").focus()}
+function openStore(){window.location.href="/"}
 </script></body></html>
