@@ -241,9 +241,20 @@ export default {
       }
 
       if (action === "update-status") {
-        const allowed = ["Baru","Diproses","Siap","Selesai"];
+        const allowed = ["Baru","Diproses","Siap","Selesai","Batal"];
         const status = allowed.includes(body.status) ? body.status : "Baru";
-        await env.DB.prepare("UPDATE orders SET status=? WHERE id=?").bind(status,String(body.id)).run();
+        const id=String(body.id||"");
+        const order=await env.DB.prepare("SELECT id,status,items FROM orders WHERE id=? LIMIT 1").bind(id).first();
+        if(!order)return json({ok:false,message:"Pesanan tidak ditemukan."},404);
+        if(order.status==="Batal" && status!=="Batal")return json({ok:false,message:"Pesanan yang sudah dibatalkan tidak bisa diaktifkan kembali."},400);
+        if(status==="Batal" && order.status!=="Batal"){
+          const items=JSON.parse(order.items||"[]");
+          const statements=items.map(item=>env.DB.prepare("UPDATE products SET stock=stock+? WHERE id=?").bind(Math.max(0,Number(item.qty)||0),Number(item.id)));
+          statements.push(env.DB.prepare("UPDATE orders SET status=? WHERE id=?").bind("Batal",id));
+          await env.DB.batch(statements);
+        } else {
+          await env.DB.prepare("UPDATE orders SET status=? WHERE id=?").bind(status,id).run();
+        }
         return json({ok:true});
       }
 
