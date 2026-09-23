@@ -245,7 +245,7 @@ async function checkout(){
   }).filter(Boolean);
   const total=items.reduce((s,x)=>s+x.qty*x.price,0);
 
-  const j=await api("save-order",{order:{items,total}});
+  const j=await api("save-order",{items,total});
   if(j && j.ok===false){
     alert("Pesanan belum tersimpan di server, tetapi WhatsApp tetap bisa dibuka.");
   }
