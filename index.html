@@ -242,7 +242,7 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
       <div class="tabs">
         <button class="tab active" onclick="showTab('dash',this)">Dashboard</button>
         <button class="tab" onclick="showTab('menuAdmin',this)">Menu</button>
-        <button class="tab" onclick="showTab('orders',this)">Pesanan</button>
+        <button class="tab" onclick="showTab('orders',this)">Pesanan</button><button class="tab" onclick="showTab('reports',this)">Laporan</button>
       </div>
       <div class="panel show" id="dash"><div class="stats">
         <div class="stat">Produk<b id="sProd">0</b></div>
@@ -274,7 +274,7 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
       </div>
 
       <div class="panel" id="orders">
-        <div style="overflow:auto"><table class="table"><thead><tr><th>Pesanan</th><th>Total</th><th>Bayar</th><th>Status</th></tr></thead><tbody id="orderTable"></tbody></table></div>
+        <div style="overflow:auto"><table class="table"><thead><tr><th>Pesanan</th><th>Total</th><th>Bayar</th><th>Status</th></tr></thead><tbody id="orderTable"></tbody></table></div><div id="tab-reports" class="tab-panel" style="display:none"><div class="panel"><h3>📊 Laporan Penjualan</h3><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:end;margin:12px 0"><label>Dari<br><input id="reportStart" type="date"></label><label>Sampai<br><input id="reportEnd" type="date"></label><button class="cta pink" onclick="loadReport()">Tampilkan</button><button class="cta" onclick="exportReport()">Export CSV</button></div><div id="reportSummary" class="stats-grid"></div><div style="overflow:auto"><table class="table"><thead><tr><th>ID</th><th>Tanggal</th><th>Pelanggan</th><th>Bayar</th><th>Total</th></tr></thead><tbody id="reportRows"></tbody></table></div></div></div>
       </div>
     </div>
   </div>
@@ -464,6 +464,8 @@ async function refreshAdmin(){
   }).join("");
   $("orderTable").innerHTML=r.orders.length?r.orders.map(o=>'<tr><td><b>'+escapeHtml(o.id)+'</b><br>'+new Date(o.created_at).toLocaleString("id-ID")+'</td><td>'+money(o.total)+'</td><td>'+escapeHtml(o.payment_method||"Tunai")+'</td><td><select class="status" onchange="updateStatus(\''+escapeAttr(o.id)+'\',this.value)"><option '+(o.status==="Baru"?"selected":"")+'>Baru</option><option '+(o.status==="Diproses"?"selected":"")+'>Diproses</option><option '+(o.status==="Selesai"?"selected":"")+'>Selesai</option></select></td></tr>').join(""):'<tr><td>Belum ada pesanan.</td></tr>';
 }
+async function loadReport(){const start=$("reportStart").value,end=$("reportEnd").value;let url="/api?action=admin-data";if(start)url+="&start="+encodeURIComponent(start);if(end)url+="&end="+encodeURIComponent(end);const r=await fetch(url,{headers:{"x-admin-password":adminPassword}}),d=await r.json();if(!d.ok)return alert(d.message||"Gagal memuat laporan");const x=d.report.summary;$("reportSummary").innerHTML='<div class="stat">Transaksi<b>'+x.orders+'</b></div><div class="stat">Omzet<b>'+money(x.sales)+'</b></div><div class="stat">Tunai<b>'+money(x.cash)+'</b></div><div class="stat">Non Tunai<b>'+money(x.qris+x.transfer)+'</b></div>';$("reportRows").innerHTML=d.report.orders.map(o=>'<tr><td>'+escapeHtml(o.id)+'</td><td>'+new Date(o.created_at).toLocaleString("id-ID")+'</td><td>'+escapeHtml(o.customer_name||"-")+'</td><td>'+escapeHtml(o.payment_method||"-")+'</td><td>'+money(Number(o.total||0))+'</td></tr>').join("");}
+function exportReport(){const rows=[["ID","Tanggal","Pelanggan","Pembayaran","Total"]];document.querySelectorAll("#reportRows tr").forEach(tr=>rows.push([...tr.children].map(td=>td.innerText)));if(rows.length===1)return alert("Tampilkan laporan dulu.");const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download="laporan-warung-nzal.csv";a.click();}
 function showTab(id,btn){
   document.querySelectorAll(".panel").forEach(x=>x.classList.remove("show"));
   document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
