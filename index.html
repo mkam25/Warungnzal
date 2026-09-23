@@ -423,6 +423,9 @@ async function load(){
   }
   renderCategories(); renderProducts(); renderCart();
 }
+
+// Initialize the live menu as soon as the page is ready.
+window.addEventListener("DOMContentLoaded",()=>{load();});
 function add(id){
   const p=products.find(x=>Number(x.id)===Number(id)); if(!p)return;
   const stock=Math.max(0,Number(p.stock)||0);
