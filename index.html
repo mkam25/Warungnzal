@@ -67,7 +67,8 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
 .top-product-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f1e6ea}
 .top-product-row:last-child{border-bottom:0}
 .top-product-row b{color:var(--p)}.table{width:100%;border-collapse:collapse}.table th,.table td{padding:9px;border-bottom:1px solid #eee;text-align:left;white-space:nowrap}
-.danger{border:0;background:#ffe5e9;color:#b51d40;border-radius:8px;padding:7px}.status{padding:7px;border-radius:8px;border:1px solid #ddd}
+.danger{border:0;background:#ffe5e9;color:#b51d40;border-radius:8px;padding:7px}.status{border-radius:10px;padding:7px 9px;font-weight:800;border:1px solid #ead7df}.status-baru{background:#fff5d8;color:#9a6b00}.status-diproses{background:#eaf2ff;color:#2463a6}.status-siap{background:#e9f9ef;color:#168943}.status-selesai{background:#f0eefc;color:#6b4bb3}
+.status{padding:7px;border-radius:8px;border:1px solid #ddd}
 .empty{grid-column:1/-1;background:#fff;border:1px solid var(--line);border-radius:18px;padding:25px;text-align:center}
 .card{display:flex;flex-direction:column;overflow:hidden}
 .pic{order:0;position:relative}
@@ -496,7 +497,15 @@ async function login(){
   if(!r.ok){alert(r.message||"Password salah.");return}
   token=r.token;$("login").style.display="none";$("admin").style.display="block";await refreshAdmin();
 }
-async function refreshAdmin(){
+async function statusClass(s){return String(s||"Baru").toLowerCase().replace(/[^a-z]/g,"")} 
+function waCustomer(phone,id,status){
+  const raw=String(phone||"").replace(/[^0-9]/g,"");
+  if(!raw)return;
+  const num=raw.startsWith("0")?"62"+raw.slice(1):raw;
+  const msg=encodeURIComponent("Halo, pesanan "+id+" di Warung Nzal sekarang: "+status+".");
+  window.open("https://wa.me/"+num+"?text="+msg,"_blank");
+}
+function refreshAdmin(){
   const r=await api("admin-data"); if(!r.ok){alert(r.message||"Gagal mengambil data admin.");return} renderCustomers(r.customers||[]); renderPromoAdmin(r.promotions||[]);
   adminData=r;
   $("sProd").textContent=r.products.length;
@@ -511,7 +520,7 @@ async function refreshAdmin(){
     const catOptions=["Ice Cream","Coklat","Buah","Matcha","Special","Lainnya"].map(c=>'<option value="'+escapeAttr(c)+'" '+(String(p.category||"Lainnya")===c?"selected":"")+'>'+escapeHtml(c)+'</option>').join("");
     return '<tr><td>'+thumb+'</td><td><input id="mn'+p.id+'" value="'+escapeAttr(p.name)+'"></td><td><input id="mp'+p.id+'" type="number" value="'+Number(p.price||0)+'" style="width:95px"></td><td><input id="me'+p.id+'" value="'+escapeAttr(p.emoji||"🍦")+'" style="width:70px"></td><td><input id="mb'+p.id+'" type="color" value="'+(p.bg||"#f7c6d9")+'"></td><td><input id="ms'+p.id+'" type="number" min="0" value="'+Number(p.stock||0)+'" style="width:75px"></td><td><input id="mr'+p.id+'" type="number" min="0" value="'+Number(p.reorder_level||5)+'" style="width:65px"></td><td><select id="mcg'+p.id+'">'+catOptions+'</select></td><td><input id="mf'+p.id+'" type="file" accept="image/*" class="photo-input"><br><label><input id="mc'+p.id+'" type="checkbox"> Hapus</label></td><td><button class="smallbtn pink" onclick="editProduct('+p.id+')">Simpan</button> <button class="danger" onclick="deleteProduct('+p.id+')">Hapus</button></td></tr>';
   }).join("");
-  $("orderTable").innerHTML=r.orders.length?r.orders.map(o=>'<tr><td><b>'+escapeHtml(o.id)+'</b><br>'+new Date(o.created_at).toLocaleString("id-ID")+'</td><td>'+money(o.total)+'</td><td>'+escapeHtml(o.payment_method||"Tunai")+'</td><td><select class="status" onchange="updateStatus(\''+escapeAttr(o.id)+'\',this.value)"><option '+(o.status==="Baru"?"selected":"")+'>Baru</option><option '+(o.status==="Diproses"?"selected":"")+'>Diproses</option><option '+(o.status==="Siap"?"selected":"")+'>Siap</option><option '+(o.status==="Selesai"?"selected":"")+'>Selesai</option></select></td></tr>').join(""):'<tr><td>Belum ada pesanan.</td></tr>';
+  $("orderTable").innerHTML=r.orders.length?r.orders.map(o=>'<tr><td><b>'+escapeHtml(o.id)+'</b><br>'+new Date(o.created_at).toLocaleString("id-ID")+'</td><td>'+money(o.total)+'</td><td>'+escapeHtml(o.payment_method||"Tunai")+'</td><td><select class="status status-'+escapeAttr(o.id)+'\',this.value)"><option '+(o.status==="Baru"?"selected":"")+'>Baru</option><option '+(o.status==="Diproses"?"selected":"")+'>Diproses</option><option '+(o.status==="Siap"?"selected":"")+'>Siap</option><option '+(o.status==="Selesai"?"selected":"")+'>Selesai</option></select></td><td><button class="smallbtn green" onclick="waCustomer(''+escapeAttr(o.customer_phone||"")+'',''+escapeAttr(o.id)+'',''+escapeAttr(o.status||"Baru")+'')">WA</button></td></tr>').join(""):'<tr><td>Belum ada pesanan.</td></tr>';
 }
 async function loadReport(){const start=$("reportStart").value,end=$("reportEnd").value;let url="/api?action=admin-data";if(start)url+="&start="+encodeURIComponent(start);if(end)url+="&end="+encodeURIComponent(end);const r=await fetch(url,{headers:{"x-admin-password":adminPassword}}),d=await r.json();if(!d.ok)return alert(d.message||"Gagal memuat laporan");const x=d.report.summary;$("reportSummary").innerHTML='<div class="stat">Transaksi<b>'+x.orders+'</b></div><div class="stat">Omzet<b>'+money(x.sales)+'</b></div><div class="stat">Tunai<b>'+money(x.cash)+'</b></div><div class="stat">Non Tunai<b>'+money(x.qris+x.transfer)+'</b></div>';$("reportRows").innerHTML=d.report.orders.map(o=>'<tr><td>'+escapeHtml(o.id)+'</td><td>'+new Date(o.created_at).toLocaleString("id-ID")+'</td><td>'+escapeHtml(o.customer_name||"-")+'</td><td>'+escapeHtml(o.payment_method||"-")+'</td><td>'+money(Number(o.total||0))+'</td></tr>').join("");}
 function exportReport(){const rows=[["ID","Tanggal","Pelanggan","Pembayaran","Total"]];document.querySelectorAll("#reportRows tr").forEach(tr=>rows.push([...tr.children].map(td=>td.innerText)));if(rows.length===1)return alert("Tampilkan laporan dulu.");const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download="laporan-warung-nzal.csv";a.click();}
