@@ -13,6 +13,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
+      - name: Verify site files
+        run: |
+          test -f index.html
+          grep -q 'Coklat' index.html
+          grep -q 'Cookies & Cream' index.html
+          echo "OK: index.html berisi menu Warung Nzal"
+          wc -c index.html
+
       - name: Deploy to Netlify
         uses: netlify/actions/cli@3185065f4ab2f6df6f2ef41ee013626e1c02a426
         with:
