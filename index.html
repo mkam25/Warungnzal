@@ -42,6 +42,18 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
 .full{width:100%;padding:13px;border:0;border-radius:13px;font-weight:800;cursor:pointer}
 .modal{inset:0;background:#0007;display:none;align-items:center;justify-content:center;padding:15px}.modal.on{display:flex}
 .box{width:min(900px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:22px;padding:18px}
+.checkout-box{width:min(520px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:22px;padding:20px}
+.checkout-summary{background:#fff7fa;border:1px solid var(--line);border-radius:16px;padding:14px;margin:12px 0}
+.pay-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.pay-btn{border:1px solid #ead6de;background:#fff;border-radius:12px;padding:11px;font-weight:800;cursor:pointer}
+.pay-btn.active{background:var(--p);color:#fff;border-color:var(--p)}
+.money-input{width:100%;padding:13px;border:1px solid #ddd;border-radius:12px;font-size:18px;font-weight:700}
+.change-box{display:flex;justify-content:space-between;padding:12px;border-radius:12px;background:#effaf3;margin-top:10px;font-weight:800}
+.receipt{font-family:Arial,sans-serif;color:#222}
+.receipt-head{text-align:center;border-bottom:1px dashed #bbb;padding-bottom:12px}
+.receipt-row{display:flex;justify-content:space-between;gap:12px;padding:5px 0}
+.receipt-total{border-top:1px dashed #bbb;margin-top:8px;padding-top:10px;font-weight:800;font-size:18px}
+.receipt-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
 .row{display:flex;gap:8px;flex-wrap:wrap}.row input,.row select{padding:10px;border:1px solid #ddd;border-radius:10px}
 .tabs{margin:14px 0}.tab{border:0;background:#f7eef1;padding:9px 12px;border-radius:9px;margin-right:5px;font-weight:700}
 .active{background:var(--p)!important;color:#fff}.panel{display:none}.panel.show{display:block}
@@ -100,6 +112,9 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
   .modal{padding:8px}
   .drawer{width:100%;max-width:none}
   .table th,.table td{padding:7px;font-size:12px}
+  .pay-grid{grid-template-columns:1fr}
+  .receipt-actions{grid-template-columns:1fr}
+  .checkout-box{padding:14px;border-radius:18px}
 }
 @media(max-width:380px){
   .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
@@ -170,9 +185,42 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
   <div class="head"><h2>🛒 Keranjang</h2><button class="close" onclick="closeCart()">×</button></div>
   <div class="list" id="cartList"></div>
   <div class="foot"><div class="total"><span>Total</span><span id="total">Rp0</span></div>
-    <button class="full green" onclick="checkout()">💬 Checkout WhatsApp</button>
+    <button class="full green" onclick="checkout()">💳 Lanjut Pembayaran</button>
   </div>
 </aside>
+
+<div class="modal" id="checkoutModal">
+  <div class="checkout-box">
+    <div class="head"><h2>💳 Pembayaran</h2><button class="close" onclick="closeCheckout()">×</button></div>
+    <div class="checkout-summary">
+      <div id="checkoutItems"></div>
+      <div class="receipt-total"><span>Total</span><span id="checkoutTotal">Rp0</span></div>
+    </div>
+    <b>Metode Pembayaran</b>
+    <div class="pay-grid">
+      <button class="pay-btn active" data-pay="Tunai" onclick="selectPayment('Tunai',this)">💵 Tunai</button>
+      <button class="pay-btn" data-pay="QRIS" onclick="selectPayment('QRIS',this)">📱 QRIS</button>
+      <button class="pay-btn" data-pay="Transfer" onclick="selectPayment('Transfer',this)">🏦 Transfer</button>
+    </div>
+    <div id="cashArea">
+      <label>Uang diterima</label>
+      <input id="paid" class="money-input" type="number" min="0" placeholder="Contoh: 50000" oninput="updateChange()">
+      <div class="change-box"><span>Kembalian</span><span id="change">Rp0</span></div>
+    </div>
+    <button class="full green" style="margin-top:14px" onclick="payNow()">✅ Bayar & Simpan Transaksi</button>
+  </div>
+</div>
+
+<div class="modal" id="receiptModal">
+  <div class="checkout-box">
+    <div class="head"><h2>🧾 Struk</h2><button class="close" onclick="closeReceipt()">×</button></div>
+    <div id="receiptContent" class="receipt"></div>
+    <div class="receipt-actions">
+      <button class="full pink" onclick="printReceipt()">🖨️ Cetak</button>
+      <button class="full green" onclick="sendReceiptWhatsApp()">💬 WhatsApp</button>
+    </div>
+  </div>
+</div>
 
 <div class="modal" id="adminModal">
   <div class="box">
@@ -212,7 +260,7 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
       </div>
 
       <div class="panel" id="orders">
-        <div style="overflow:auto"><table class="table"><tbody id="orderTable"></tbody></table></div>
+        <div style="overflow:auto"><table class="table"><thead><tr><th>Pesanan</th><th>Total</th><th>Bayar</th><th>Status</th></tr></thead><tbody id="orderTable"></tbody></table></div>
       </div>
     </div>
   </div>
@@ -309,16 +357,70 @@ function changeQty(id,d){
 function openCart(){$("overlay").classList.add("on");$("drawer").classList.add("on")}
 function closeCart(){$("overlay").classList.remove("on");$("drawer").classList.remove("on")}
 function goToMenu(){$("menu").scrollIntoView({behavior:"smooth"})}
+let selectedPayment="Tunai";
+let lastReceipt=null;
+
 function checkout(){
   if(!cart.length)return alert("Keranjang masih kosong.");
-  const lines=cart.map(x=>{const p=products.find(p=>Number(p.id)===Number(x.id));return p?`${p.name} x${x.qty}`:""}).filter(Boolean);
-  const total=cart.reduce((s,x)=>{const p=products.find(p=>Number(p.id)===Number(x.id));return s+(p?Number(p.price)*x.qty:0)},0);
-  api("save-order",{items:cart,customer:{name:"",phone:"",address:""}}).then(r=>{
-    if(!r.ok){alert(r.message||"Pesanan gagal disimpan.");return}
-    const text=encodeURIComponent("Halo Warung Nzal, saya mau pesan:\n"+lines.join("\n")+"\nTotal: "+money(total)+"\nID Pesanan: "+r.order.id);
-    window.open("https://wa.me/6281953154549?text="+text,"_blank");
-    cart=[];localStorage.nzal_cart="[]";renderCart();closeCart();
-  });
+  selectedPayment="Tunai";
+  const total=cart.reduce((sum,x)=>{const p=products.find(p=>Number(p.id)===Number(x.id));return sum+(p?Number(p.price)*Number(x.qty):0)},0);
+  $("checkoutItems").innerHTML=cart.map(x=>{
+    const p=products.find(p=>Number(p.id)===Number(x.id));
+    return p?'<div class="receipt-row"><span>'+escapeHtml(p.name)+' × '+Number(x.qty)+'</span><b>'+money(Number(p.price)*Number(x.qty))+'</b></div>':"";
+  }).join("");
+  $("checkoutTotal").textContent=money(total);
+  $("paid").value="";
+  $("change").textContent=money(0);
+  document.querySelectorAll(".pay-btn").forEach(b=>b.classList.toggle("active",b.dataset.pay==="Tunai"));
+  $("cashArea").style.display="block";
+  $("checkoutModal").classList.add("on");
+  setTimeout(()=>$("paid").focus(),50);
+}
+function closeCheckout(){$("checkoutModal").classList.remove("on")}
+function selectPayment(method,btn){
+  selectedPayment=method;
+  document.querySelectorAll(".pay-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  $("cashArea").style.display=method==="Tunai"?"block":"none";
+}
+function updateChange(){
+  const total=Number($("checkoutTotal").textContent.replace(/[^0-9]/g,""))||0;
+  const paid=Number($("paid").value)||0;
+  $("change").textContent=money(Math.max(0,paid-total));
+}
+async function payNow(){
+  const total=cart.reduce((sum,x)=>{const p=products.find(p=>Number(p.id)===Number(x.id));return sum+(p?Number(p.price)*Number(x.qty):0)},0);
+  const paid=selectedPayment==="Tunai"?(Number($("paid").value)||0):total;
+  if(selectedPayment==="Tunai" && paid<total)return alert("Uang yang diterima masih kurang.");
+  const r=await api("save-order",{items:cart,customer:{name:"",phone:"",address:""},payment_method:selectedPayment,paid});
+  if(!r.ok)return alert(r.message||"Transaksi gagal disimpan.");
+  const order=r.order;
+  lastReceipt={...order,created_at:new Date().toISOString()};
+  $("receiptContent").innerHTML=renderReceipt(lastReceipt);
+  cart=[];localStorage.nzal_cart="[]";renderCart();
+  closeCheckout();$("receiptModal").classList.add("on");
+}
+function renderReceipt(o){
+  const rows=(o.items||[]).map(x=>'<div class="receipt-row"><span>'+escapeHtml(x.name)+' × '+Number(x.qty)+'</span><span>'+money(Number(x.subtotal)||0)+'</span></div>').join("");
+  return '<div class="receipt-head"><h2>🍨 WARUNG NZAL</h2><div>Ice Cream Gabin</div><small>'+escapeHtml(o.id)+'<br>'+new Date(o.created_at).toLocaleString("id-ID")+'</small></div>'+
+    '<div style="padding:10px 0">'+rows+'</div>'+
+    '<div class="receipt-total receipt-row"><span>TOTAL</span><span>'+money(o.total)+'</span></div>'+
+    '<div class="receipt-row"><span>Pembayaran</span><b>'+escapeHtml(o.payment_method||"Tunai")+'</b></div>'+
+    (o.payment_method==="Tunai"?'<div class="receipt-row"><span>Dibayar</span><span>'+money(o.paid)+'</span></div><div class="receipt-row"><span>Kembalian</span><b>'+money(o.change_amount||0)+'</b></div>':"")+
+    '<p style="text-align:center;margin:18px 0 4px">Terima kasih ❤️</p>';
+}
+function closeReceipt(){$("receiptModal").classList.remove("on")}
+function printReceipt(){
+  if(!lastReceipt)return;
+  const w=window.open("","_blank","width=420,height=700");
+  w.document.write('<html><head><title>Struk '+escapeHtml(lastReceipt.id)+'</title><style>body{font-family:Arial;padding:18px;max-width:380px;margin:auto}.receipt-row{display:flex;justify-content:space-between;padding:5px 0}.receipt-total{border-top:1px dashed #999;margin-top:8px;padding-top:10px;font-weight:bold}</style></head><body>'+renderReceipt(lastReceipt)+'<script>window.onload=function(){window.print()}<\/script></body></html>');
+  w.document.close();
+}
+function sendReceiptWhatsApp(){
+  if(!lastReceipt)return;
+  const lines=(lastReceipt.items||[]).map(x=>x.name+" x"+x.qty+" - "+money(x.subtotal)).join("\n");
+  const text=encodeURIComponent("🧾 STRUK WARUNG NZAL\n"+lastReceipt.id+"\n"+lines+"\nTOTAL: "+money(lastReceipt.total)+"\nPembayaran: "+lastReceipt.payment_method+(lastReceipt.payment_method==="Tunai"?"\nKembalian: "+money(lastReceipt.change_amount||0):""));
+  window.open("https://wa.me/6281953154549?text="+text,"_blank");
 }
 function openAdmin(){$("adminModal").classList.add("on");$("pass").focus()}
 function closeAdmin(){$("adminModal").classList.remove("on")}
@@ -338,7 +440,7 @@ async function refreshAdmin(){
     const thumb=p.image ? '<img class="thumb" src="'+escapeAttr(p.image)+'" alt="'+escapeAttr(p.name)+'">' : '<div class="thumb" style="display:grid;place-items:center;font-size:25px">'+(p.emoji||"🍦")+'</div>';
     return '<tr><td>'+thumb+'</td><td><input id="mn'+p.id+'" value="'+escapeAttr(p.name)+'"></td><td><input id="mp'+p.id+'" type="number" value="'+Number(p.price||0)+'" style="width:95px"></td><td><input id="me'+p.id+'" value="'+escapeAttr(p.emoji||"🍦")+'" style="width:70px"></td><td><input id="mb'+p.id+'" type="color" value="'+(p.bg||"#f7c6d9")+'"></td><td><input id="mf'+p.id+'" type="file" accept="image/*" class="photo-input"><br><label><input id="mc'+p.id+'" type="checkbox"> Hapus</label></td><td><button class="smallbtn pink" onclick="editProduct('+p.id+')">Simpan</button> <button class="danger" onclick="deleteProduct('+p.id+')">Hapus</button></td></tr>';
   }).join("");
-  $("orderTable").innerHTML=r.orders.length?r.orders.map(o=>'<tr><td><b>'+escapeHtml(o.id)+'</b><br>'+new Date(o.created_at).toLocaleString("id-ID")+'</td><td>'+money(o.total)+'</td><td><select class="status" onchange="updateStatus(\''+escapeAttr(o.id)+'\',this.value)"><option '+(o.status==="Baru"?"selected":"")+'>Baru</option><option '+(o.status==="Diproses"?"selected":"")+'>Diproses</option><option '+(o.status==="Selesai"?"selected":"")+'>Selesai</option></select></td></tr>').join(""):'<tr><td>Belum ada pesanan.</td></tr>';
+  $("orderTable").innerHTML=r.orders.length?r.orders.map(o=>'<tr><td><b>'+escapeHtml(o.id)+'</b><br>'+new Date(o.created_at).toLocaleString("id-ID")+'</td><td>'+money(o.total)+'</td><td>'+escapeHtml(o.payment_method||"Tunai")+'</td><td><select class="status" onchange="updateStatus(\''+escapeAttr(o.id)+'\',this.value)"><option '+(o.status==="Baru"?"selected":"")+'>Baru</option><option '+(o.status==="Diproses"?"selected":"")+'>Diproses</option><option '+(o.status==="Selesai"?"selected":"")+'>Selesai</option></select></td></tr>').join(""):'<tr><td>Belum ada pesanan.</td></tr>';
 }
 function showTab(id,btn){
   document.querySelectorAll(".panel").forEach(x=>x.classList.remove("show"));
