@@ -94,10 +94,30 @@ export default {
 
       if (action === "add-product") {
         const p = body.product || {};
+        const image = String(p.image || "");
+        if (image && (!image.startsWith("data:image/") || image.length > 1900000)) {
+          return json({ok:false,message:"Foto tidak valid atau terlalu besar. Pilih foto yang lebih kecil."},400);
+        }
         const max = await env.DB.prepare("SELECT COALESCE(MAX(id),0) AS m FROM products").first();
         const id = Number(max.m)+1;
         await env.DB.prepare("INSERT INTO products (id,name,price,emoji,bg,description,image) VALUES (?,?,?,?,?,?,?)")
-          .bind(id,String(p.name||"Produk").trim(),Math.max(0,Number(p.price)||0),String(p.emoji||"🍦"),String(p.bg||"#f7c6d9"),String(p.description||""),String(p.image||"")).run();
+          .bind(id,String(p.name||"Produk").trim(),Math.max(0,Number(p.price)||0),String(p.emoji||"🍦"),String(p.bg||"#f7c6d9"),String(p.description||""),image).run();
+        return json({ok:true});
+      }
+
+      if (action === "update-product") {
+        const p = body.product || {};
+        const id = Number(p.id);
+        if (!id) return json({ok:false,message:"ID produk tidak valid."},400);
+        const image = p.image === undefined ? null : String(p.image || "");
+        if (image !== null && image && (!image.startsWith("data:image/") || image.length > 1900000)) {
+          return json({ok:false,message:"Foto tidak valid atau terlalu besar. Pilih foto yang lebih kecil."},400);
+        }
+        const current = await env.DB.prepare("SELECT image FROM products WHERE id=?").bind(id).first();
+        if (!current) return json({ok:false,message:"Produk tidak ditemukan."},404);
+        const finalImage = image === null ? String(current.image || "") : image;
+        await env.DB.prepare("UPDATE products SET name=?,price=?,emoji=?,bg=?,image=? WHERE id=?")
+          .bind(String(p.name||"Produk").trim(),Math.max(0,Number(p.price)||0),String(p.emoji||"🍦"),String(p.bg||"#f7c6d9"),finalImage,id).run();
         return json({ok:true});
       }
 
