@@ -238,7 +238,7 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
     </div>
   </div></div>
 
-<div class="modal" id="adminModal">
+<div class="modal" id="orderDetailModal"><div class="checkout-box"><div class="head"><h2>📦 Detail Pesanan</h2><button class="close" onclick="closeOrderDetail()">×</button></div><div id="orderDetailContent" class="receipt"></div></div></div><div class="modal" id="adminModal">
   <div class="box">
     <div class="head"><h2>⚙️ Admin Warung Nzal</h2><div><button class="smallbtn" onclick="logoutAdmin()">Keluar</button> <button class="close" onclick="closeAdmin()">×</button></div></div>
     <div id="login">
@@ -593,8 +593,18 @@ function openOrdersByStatus(status){
 function setOrderFilter(status,btn){orderFilter=status;document.querySelectorAll("#orderFilterBox button").forEach(x=>x.classList.remove("active"));if(btn)btn.classList.add("active");renderAdminOrders((adminData&&adminData.orders)||[]);}
 function renderAdminOrders(orders){
  const filtered=orderFilter==="Semua"?orders:orders.filter(o=>String(o.status||"Baru")===orderFilter);
- $("orderTable").innerHTML=filtered.length?filtered.map(o=>{const s=o.status||"Baru";return '<tr class="'+(s==="Baru"?'order-new':'')+'"><td><b>'+escapeHtml(o.id)+'</b><br><small>'+new Date(o.created_at).toLocaleString("id-ID")+'</small></td><td><b>'+escapeHtml(o.customer_name||"-")+'</b><br><small>'+escapeHtml(o.customer_phone||"")+'</small></td><td>'+money(o.total)+'</td><td>'+escapeHtml(o.payment_method||"Tunai")+'</td><td><select class="status status-'+statusClass(s)+'" onchange="updateStatus(\''+escapeAttr(o.id)+'\',this.value)"><option '+(s==="Baru"?"selected":"")+'>Baru</option><option '+(s==="Diproses"?"selected":"")+'>Diproses</option><option '+(s==="Siap"?"selected":"")+'>Siap</option><option '+(s==="Selesai"?"selected":"")+'>Selesai</option><option '+(s==="Batal"?"selected":"")+'>Batal</option></select></td><td><button class="smallbtn green" onclick="waCustomer(\''+escapeAttr(o.customer_phone||"")+'\',\''+escapeAttr(o.id)+'\',\''+escapeAttr(s)+'\')">WA</button></td></tr>';}).join(""):'<tr><td colspan="6">Tidak ada pesanan pada status ini.</td></tr>';
+ $("orderTable").innerHTML=filtered.length?filtered.map(o=>{
+  const s=o.status||"Baru";
+  return '<tr class="'+(s==="Baru"?'order-new':'')+'"><td><b>'+escapeHtml(o.id)+'</b><br><small>'+new Date(o.created_at).toLocaleString("id-ID")+'</small></td><td><b>'+escapeHtml(o.customer_name||"-")+'</b><br><small>'+escapeHtml(o.customer_phone||"")+'</small></td><td>'+money(o.total)+'</td><td>'+escapeHtml(o.payment_method||"Tunai")+'</td><td><select class="status status-'+statusClass(s)+'" onchange="updateStatus(\''+escapeAttr(o.id)+'\',this.value)"><option '+(s==="Baru"?"selected":"")+'>Baru</option><option '+(s==="Diproses"?"selected":"")+'>Diproses</option><option '+(s==="Siap"?"selected":"")+'>Siap</option><option '+(s==="Selesai"?"selected":"")+'>Selesai</option><option '+(s==="Batal"?"selected":"")+'>Batal</option></select></td><td><button class="smallbtn" onclick="openOrderDetail(\''+escapeAttr(o.id)+'\')">Detail</button> <button class="smallbtn green" onclick="waCustomer(\''+escapeAttr(o.customer_phone||"")+'\',\''+escapeAttr(o.id)+'\',\''+escapeAttr(s)+'\')">WA</button></td></tr>';
+ }).join(""):'<tr><td colspan="6">Tidak ada pesanan pada status ini.</td></tr>';
 }
+function openOrderDetail(id){
+ const o=(adminData&&adminData.orders||[]).find(x=>String(x.id)===String(id));if(!o)return;
+ const rows=(o.items||[]).map(x=>'<div class="receipt-row"><span>'+escapeHtml(x.name||"Produk")+' × '+Number(x.qty||0)+'</span><b>'+money(Number(x.subtotal)||0)+'</b></div>').join("");
+ $("orderDetailContent").innerHTML='<div class="receipt-head"><h2>'+escapeHtml(o.id)+'</h2><small>'+new Date(o.created_at).toLocaleString("id-ID")+'</small></div><div style="padding:10px 0">'+rows+'</div>'+(Number(o.discount||0)>0?'<div class="receipt-row"><span>Diskon</span><b>-'+money(o.discount)+'</b></div>':"")+'<div class="receipt-total receipt-row"><span>TOTAL</span><b>'+money(o.total||0)+'</b></div><div class="receipt-row"><span>Status</span><b>'+escapeHtml(o.status||"Baru")+'</b></div><div class="receipt-row"><span>Pemesan</span><b>'+escapeHtml(o.customer_name||"-")+'</b></div><div class="receipt-row"><span>WhatsApp</span><span>'+escapeHtml(o.customer_phone||"-")+'</span></div><div class="receipt-row"><span>Alamat</span><span>'+escapeHtml(o.customer_address||"-")+'</span></div><div class="receipt-row"><span>Pembayaran</span><b>'+escapeHtml(o.payment_method||"Tunai")+'</b></div>'+(o.payment_method==="Tunai"?'<div class="receipt-row"><span>Dibayar / Kembalian</span><span>'+money(o.paid||0)+' / '+money(o.change_amount||0)+'</span></div>':"");
+ $("orderDetailModal").classList.add("on");
+}
+function closeOrderDetail(){$("orderDetailModal").classList.remove("on")}
 function statusClass(s){return String(s||"Baru").toLowerCase().replace(/[^a-z]/g,"")} 
 function waCustomer(phone,id,status){
   const raw=String(phone||"").replace(/[^0-9]/g,"");
