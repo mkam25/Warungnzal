@@ -49,6 +49,7 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
 .pay-btn{border:1px solid #ead6de;background:#fff;border-radius:12px;padding:11px;font-weight:800;cursor:pointer}
 .pay-btn.active{background:var(--p);color:#fff;border-color:var(--p)}
 .money-input{width:100%;padding:13px;border:1px solid #ddd;border-radius:12px;font-size:18px;font-weight:700}
+.customer-form{display:grid;gap:8px;margin:12px 0}.customer-form input,.customer-form textarea{width:100%;padding:12px;border:1px solid #ddd;border-radius:12px;font:inherit}.customer-form textarea{min-height:70px;resize:vertical}
 .change-box{display:flex;justify-content:space-between;padding:12px;border-radius:12px;background:#effaf3;margin-top:10px;font-weight:800}
 .receipt{font-family:Arial,sans-serif;color:#222}
 .receipt-head{text-align:center;border-bottom:1px dashed #bbb;padding-bottom:12px}
@@ -207,6 +208,7 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
       <div id="checkoutItems"></div>
       <div class="receipt-total"><span>Total</span><span id="checkoutTotal">Rp0</span></div>
     </div>
+    <div class="customer-form"><b>📦 Data Pemesan</b><input id="customerName" placeholder="Nama pemesan *"><input id="customerPhone" type="tel" placeholder="Nomor WhatsApp *"><textarea id="customerAddress" placeholder="Alamat / catatan pengantaran"></textarea></div>
     <div style="display:flex;gap:8px;margin:12px 0;flex-wrap:wrap"><input id="promoCode" placeholder="Kode voucher" style="flex:1;min-width:150px;text-transform:uppercase"><button class="cta" onclick="checkPromo()">Pakai Promo</button></div><div id="promoInfo" style="font-size:12px;margin-bottom:10px"></div>
     <b>Metode Pembayaran</b>
     <div class="pay-grid">
@@ -408,6 +410,9 @@ function checkout(){
     return p?'<div class="receipt-row"><span>'+escapeHtml(p.name)+' × '+Number(x.qty)+'</span><b>'+money(Number(p.price)*Number(x.qty))+'</b></div>':"";
   }).join("");
   $("checkoutTotal").textContent=money(total);
+  $("customerName").value=localStorage.nzal_customer_name||"";
+  $("customerPhone").value=localStorage.nzal_customer_phone||"";
+  $("customerAddress").value=localStorage.nzal_customer_address||"";
   $("promoCode").value="";$("promoInfo").textContent="";
   $("paid").value="";
   $("change").textContent=money(0);
@@ -444,8 +449,13 @@ async function payNow(){
     discount=Number(pr.discount||0);total=Math.max(0,subtotal-discount);
   }
   const paid=selectedPayment==="Tunai"?(Number($("paid").value)||0):total;
+  const customer={name:$("customerName").value.trim(),phone:$("customerPhone").value.trim(),address:$("customerAddress").value.trim()};
+  if(!customer.name)return alert("Nama pemesan wajib diisi.");
+  if(!customer.phone)return alert("Nomor WhatsApp wajib diisi.");
+  if(!/^\+?[0-9\s-]{8,16}$/.test(customer.phone))return alert("Nomor WhatsApp tidak valid.");
   if(selectedPayment==="Tunai" && paid<total)return alert("Uang yang diterima masih kurang.");
-  const r=await api("save-order",{items:cart,customer:{name:"",phone:"",address:""},payment_method:selectedPayment,paid,promo_code});
+  localStorage.nzal_customer_name=customer.name;localStorage.nzal_customer_phone=customer.phone;localStorage.nzal_customer_address=customer.address;
+  const r=await api("save-order",{items:cart,customer,payment_method:selectedPayment,paid,promo_code});
   if(!r.ok)return alert(r.message||"Transaksi gagal disimpan.");
   const order=r.order;
   lastReceipt={...order,created_at:new Date().toISOString()};
@@ -459,6 +469,8 @@ function renderReceipt(o){
     '<div style="padding:10px 0">'+rows+'</div>'+
     (Number(o.discount||0)>0?'<div class="receipt-row"><span>Diskon '+escapeHtml(o.promo_code||"")+'</span><b>-'+money(o.discount)+'</b></div>':"")+
     '<div class="receipt-total receipt-row"><span>TOTAL</span><span>'+money(o.total)+'</span></div>'+
+    '<div class="receipt-row"><span>Pemesan</span><b>'+escapeHtml(o.customer_name||"")+'</b></div>'+
+    '<div class="receipt-row"><span>WhatsApp</span><span>'+escapeHtml(o.customer_phone||"")+'</span></div>'+
     '<div class="receipt-row"><span>Pembayaran</span><b>'+escapeHtml(o.payment_method||"Tunai")+'</b></div>'+
     (o.payment_method==="Tunai"?'<div class="receipt-row"><span>Dibayar</span><span>'+money(o.paid)+'</span></div><div class="receipt-row"><span>Kembalian</span><b>'+money(o.change_amount||0)+'</b></div>':"")+
     '<p style="text-align:center;margin:18px 0 4px">Terima kasih ❤️</p>';
