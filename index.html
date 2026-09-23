@@ -401,9 +401,13 @@ async function load(){
 }
 function add(id){
   const p=products.find(x=>Number(x.id)===Number(id)); if(!p)return;
-  if(Number(p.stock||0)<=0)return alert("Produk sedang habis.");
+  const stock=Math.max(0,Number(p.stock)||0);
+  if(stock<=0)return alert("Produk sedang habis.");
   const x=cart.find(x=>Number(x.id)===Number(id));
-  if(x)x.qty++; else cart.push({id:Number(p.id),qty:1});
+  if(x){
+    if(x.qty>=stock)return alert("Jumlah di keranjang sudah mencapai stok tersedia ("+stock+").");
+    x.qty++;
+  }else cart.push({id:Number(p.id),qty:1});
   localStorage.nzal_cart=JSON.stringify(cart); renderCart(); openCart();
 }
 function renderCart(){
@@ -418,7 +422,11 @@ function renderCart(){
 }
 function changeQty(id,d){
   const x=cart.find(x=>Number(x.id)===Number(id)); if(!x)return;
-  x.qty+=d; if(x.qty<=0)cart=cart.filter(y=>Number(y.id)!==Number(id));
+  const p=products.find(p=>Number(p.id)===Number(id));
+  const stock=p?Math.max(0,Number(p.stock)||0):0;
+  if(d>0 && x.qty>=stock)return alert(stock>0?"Jumlah sudah mencapai stok tersedia ("+stock+").":"Produk sedang habis.");
+  x.qty+=d;
+  if(x.qty<=0)cart=cart.filter(y=>Number(y.id)!==Number(id));
   localStorage.nzal_cart=JSON.stringify(cart); renderCart();
 }
 function openCart(){$("overlay").classList.add("on");$("drawer").classList.add("on")}
