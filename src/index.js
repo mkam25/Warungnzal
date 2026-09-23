@@ -149,7 +149,11 @@ export default {
         const statements = items.map(item => env.DB.prepare("UPDATE products SET stock=stock-? WHERE id=? AND stock>=?").bind(item.qty,item.id,item.qty));
         statements.push(env.DB.prepare("INSERT INTO orders (id,created_at,customer_name,customer_phone,customer_address,items,total,payment_method,paid,change_amount,status,discount,promo_code) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)")
           .bind(id,new Date().toISOString(),String(body.customer?.name||""),String(body.customer?.phone||""),String(body.customer?.address||""),JSON.stringify(items),total,paymentMethod,paid,changeAmount,"Baru",discount,promoCode));
-        await env.DB.batch(statements);
+        const results = await env.DB.batch(statements);
+        const stockResults = results.slice(0,items.length);
+        if(stockResults.some(r => !r.success || Number(r.meta?.changes||0) !== 1)) {
+          return json({ok:false,message:"Stok berubah saat checkout. Silakan coba lagi."},409);
+        }
         return json({ok:true,order:{id,subtotal,total,discount,promo_code:promoCode,items,payment_method:paymentMethod,paid,change_amount:changeAmount,status:"Baru"}});
       }
 
