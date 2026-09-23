@@ -682,6 +682,9 @@ async function updateStatus(id,status){
   const r=await api("update-status",{id,status});if(!r.ok)alert(r.message||"Gagal memperbarui status.");else await refreshAdmin();
 }
 load();
+if(location.pathname==="/admin"||location.pathname==="/admin/"){
+  setTimeout(()=>openAdmin(),0);
+}
 </script>
 </body>
 </html>
