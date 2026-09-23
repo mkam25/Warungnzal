@@ -331,7 +331,7 @@ async function fetchTrackedOrder(showError=true,openModal=true){
   if(openModal) $("orderDetailModal").classList.add("on");
   return true;
 }
-async function startTrackedOrder(id,phone){
+async async function startTrackedOrder(id,phone){
   trackedOrderId=String(id||"").trim().toUpperCase();
   trackedOrderPhone=String(phone||"").trim();
   if(!trackedOrderId||!trackedOrderPhone)return;
@@ -545,7 +545,7 @@ async function checkPromo(){
   const r=await api("check-promo",{code,subtotal}); if(!r.ok){$("promoInfo").textContent=r.message||"Promo tidak valid.";return}
   $("promoInfo").textContent="Promo aktif: hemat "+money(r.discount)+" • Total "+money(subtotal-r.discount);$("checkoutTotal").textContent=money(subtotal-r.discount);
 }
-async function payNow(){
+async async function payNow(){
   if(!cart.length)return alert("Keranjang masih kosong.");
   const fresh=await fetch("/api/products").then(x=>x.json()).catch(()=>({ok:false}));
   if(!fresh.ok||!Array.isArray(fresh.products))return alert("Menu sedang tidak bisa diperbarui. Coba lagi.");
