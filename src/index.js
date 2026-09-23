@@ -93,6 +93,11 @@ export default {
     try {
       await init(env.DB);
 
+      if (request.method === "GET" && url.pathname === "/api/debug-images") {
+        const rows = await env.DB.prepare("SELECT id,name,image FROM products ORDER BY id").all();
+        return json({ok:true,products:(rows.results||[]).map(p=>({id:p.id,name:p.name,hasImage:!!p.image,imageLength:String(p.image||"").length,prefix:String(p.image||"").slice(0,30)}))});
+      }
+
       if (request.method === "GET" && url.pathname === "/api/products") {
         const r = await products(env.DB);
         return json({ok:true,products:r.results});
