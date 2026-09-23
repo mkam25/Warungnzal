@@ -36,6 +36,14 @@ async function init(db) {
   if (!names.has("image")) migrations.push(db.prepare("ALTER TABLE products ADD COLUMN image TEXT DEFAULT ''"));
   if (migrations.length) await db.batch(migrations);
 
+  const orderColumns = await db.prepare("PRAGMA table_info(orders)").all();
+  const orderNames = new Set((orderColumns.results || []).map(x => x.name));
+  const orderMigrations = [];
+  if (!orderNames.has("payment_method")) orderMigrations.push(db.prepare("ALTER TABLE orders ADD COLUMN payment_method TEXT DEFAULT 'Tunai'"));
+  if (!orderNames.has("paid")) orderMigrations.push(db.prepare("ALTER TABLE orders ADD COLUMN paid INTEGER DEFAULT 0"));
+  if (!orderNames.has("change_amount")) orderMigrations.push(db.prepare("ALTER TABLE orders ADD COLUMN change_amount INTEGER DEFAULT 0"));
+  if (orderMigrations.length) await db.batch(orderMigrations);
+
   // Seed defaults only once. Never recreate them just because an admin deleted all products.
   const seeded = await db.prepare("SELECT value FROM app_settings WHERE key='products_seeded'").first();
   if (!seeded) {
@@ -95,10 +103,14 @@ export default {
         }).filter(Boolean);
         if (!items.length) return json({ok:false,message:"Keranjang kosong."},400);
         const total = items.reduce((s,x)=>s+x.subtotal,0);
+        const paymentMethod = ["Tunai","QRIS","Transfer"].includes(body.payment_method) ? body.payment_method : "Tunai";
+        const paid = Math.max(0, Math.round(Number(body.paid)||0));
+        if (paymentMethod === "Tunai" && paid < total) return json({ok:false,message:"Uang dibayar masih kurang."},400);
+        const changeAmount = paymentMethod === "Tunai" ? paid - total : 0;
         const id = "WN-"+Date.now().toString(36).toUpperCase();
-        await env.DB.prepare("INSERT INTO orders (id,created_at,customer_name,customer_phone,customer_address,items,total,status) VALUES (?,?,?,?,?,?,?,?)")
-          .bind(id,new Date().toISOString(),String(body.customer?.name||""),String(body.customer?.phone||""),String(body.customer?.address||""),JSON.stringify(items),total,"Baru").run();
-        return json({ok:true,order:{id,total,items}});
+        await env.DB.prepare("INSERT INTO orders (id,created_at,customer_name,customer_phone,customer_address,items,total,payment_method,paid,change_amount,status) VALUES (?,?,?,?,?,?,?,?,?,?,?)")
+          .bind(id,new Date().toISOString(),String(body.customer?.name||""),String(body.customer?.phone||""),String(body.customer?.address||""),JSON.stringify(items),total,paymentMethod,paid,changeAmount,"Baru").run();
+        return json({ok:true,order:{id,total,items,payment_method:paymentMethod,paid,change_amount:changeAmount,status:"Baru"}});
       }
 
       if (!authorized(request,env)) return json({ok:false,message:"Sesi admin tidak valid."},401);
