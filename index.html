@@ -155,7 +155,7 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
   <div class="nav">
     <div class="logo">🍨 Warung Nzal</div>
     <div>
-      <button class="pill admin" onclick="openAdmin()">⚙️ Admin</button>
+      <button id="adminEntry" class="pill admin" style="display:none" onclick="openAdmin()">⚙️ Admin</button>
       <button class="pill cart" onclick="openCart()">🛒 <span id="count">0</span></button>
     </div>
   </div>
@@ -682,6 +682,7 @@ async function updateStatus(id,status){
   if(status==="Batal" && !confirm("Batalkan pesanan ini? Stok akan dikembalikan ke menu."))return await refreshAdmin();
   const r=await api("update-status",{id,status});if(!r.ok)alert(r.message||"Gagal memperbarui status.");else await refreshAdmin();
 }
+const adminEntry=$("adminEntry");if(adminEntry)adminEntry.style.display="none";
 load();
 if(location.pathname==="/admin"||location.pathname==="/admin/"){
   setTimeout(()=>openAdmin(),0);
