@@ -533,9 +533,25 @@ function printReceipt(){
 }
 function sendReceiptWhatsApp(){
   if(!lastReceipt)return;
-  const lines=(lastReceipt.items||[]).map(x=>x.name+" x"+x.qty+" - "+money(x.subtotal)).join("\n");
-  const text=encodeURIComponent("🧾 STRUK WARUNG NZAL\n"+lastReceipt.id+"\n"+lines+"\nTOTAL: "+money(lastReceipt.total)+"\nPembayaran: "+lastReceipt.payment_method+(lastReceipt.payment_method==="Tunai"?"\nKembalian: "+money(lastReceipt.change_amount||0):""));
-  window.open("https://wa.me/6281953154549?text="+text,"_blank");
+  const raw=String(lastReceipt.customer_phone||"").replace(/[^0-9+]/g,"");
+  let phone=raw.replace(/^\+/,"");
+  if(phone.startsWith("0"))phone="62"+phone.slice(1);
+  if(phone.startsWith("8"))phone="62"+phone;
+  if(!/^62[0-9]{8,14}$/.test(phone))return alert("Nomor WhatsApp pelanggan tidak valid.");
+  const lines=(lastReceipt.items||[]).map(x=>"• "+x.name+" x"+x.qty+" — "+money(x.subtotal)).join("\n");
+  const text=encodeURIComponent(
+    "🧾 *STRUK WARUNG NZAL*\n"+
+    "No. Pesanan: "+lastReceipt.id+"\n"+
+    "Halo "+(lastReceipt.customer_name||"Pelanggan")+", terima kasih sudah memesan.\n\n"+
+    lines+"\n\n"+
+    "Subtotal: "+money(lastReceipt.subtotal||0)+
+    (Number(lastReceipt.discount||0)>0?"\nDiskon: -"+money(lastReceipt.discount):"")+
+    "\n*TOTAL: "+money(lastReceipt.total)+"*\n"+
+    "Pembayaran: "+(lastReceipt.payment_method||"Tunai")+
+    (lastReceipt.payment_method==="Tunai"?"\nDibayar: "+money(lastReceipt.paid||0)+"\nKembalian: "+money(lastReceipt.change_amount||0):"")+
+    "\n\nWarung Nzal 🍨"
+  );
+  window.open("https://wa.me/"+phone+"?text="+text,"_blank");
 }
 function resetAdminView(){
   const saved=token;
