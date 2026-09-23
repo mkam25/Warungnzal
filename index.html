@@ -235,7 +235,7 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
     </div>
   </div></div>
 
-<div class="modal" id="orderDetailModal"><div class="checkout-box"><div class="head"><h2>📦 Detail Pesanan</h2><button class="close" onclick="closeOrderDetail()">×</button></div><div id="orderDetailContent" class="receipt"></div></div></div><div class="modal" id="adminModal">
+<div class="modal" id="trackOrderModal"><div class="checkout-box"><div class="head"><h2>📦 Cek Pesanan</h2><button class="close" onclick="closeTrackOrder()">×</button></div><p style="margin:4px 0 14px;font-size:13px;color:#777">Masukkan nomor pesanan dan nomor WhatsApp yang digunakan saat checkout.</p><label class="checkout-label">Nomor Pesanan</label><input id="trackOrderId" class="money-input" type="text" placeholder="Contoh: WN-ABC123" autocomplete="off" style="font-size:15px"><label class="checkout-label">Nomor WhatsApp</label><input id="trackOrderPhone" class="money-input" type="tel" placeholder="Contoh: 081234567890" autocomplete="tel" style="font-size:15px"><button class="full green" style="margin-top:14px" onclick="submitTrackOrder()">🔎 Lacak Pesanan</button><div style="margin-top:10px;text-align:center;font-size:11px;color:#999">Status pesanan akan diperbarui otomatis setiap 5 detik.</div></div></div><div class="modal" id="orderDetailModal"><div class="checkout-box"><div class="head"><h2>📦 Detail Pesanan</h2><button class="close" onclick="closeOrderDetail()">×</button></div><div id="orderDetailContent" class="receipt"></div></div></div><div class="modal" id="adminModal">
   <div class="box">
     <div class="head"><h2>⚙️ Admin Warung Nzal</h2><div><button class="smallbtn" onclick="logoutAdmin()">Keluar</button> <button class="close" onclick="closeAdmin()">×</button></div></div>
     <div id="login">
@@ -343,13 +343,24 @@ async function startTrackedOrder(id,phone){
   await fetchTrackedOrder(false,true);
   trackedOrderTimer=setInterval(()=>fetchTrackedOrder(false,false),5000);
 }
-async function checkOrderStatus(){
-  const id=String(prompt("Masukkan nomor pesanan (contoh: WN-ABC123)")||"").trim().toUpperCase();
-  if(!id)return;
-  const phone=String(prompt("Masukkan nomor WhatsApp yang dipakai saat checkout")||"").trim();
-  if(!phone)return;
+function checkOrderStatus(){
+  const savedId=localStorage.getItem("nzal_tracked_order_id")||"";
+  const savedPhone=localStorage.getItem("nzal_tracked_order_phone")||"";
+  $("trackOrderId").value=savedId;
+  $("trackOrderPhone").value=savedPhone;
+  $("trackOrderModal").classList.add("on");
+  setTimeout(()=>$("trackOrderId").focus(),50);
+}
+async function submitTrackOrder(){
+  const id=String($("trackOrderId").value||"").trim().toUpperCase();
+  const phone=String($("trackOrderPhone").value||"").trim();
+  if(!id)return alert("Nomor pesanan wajib diisi.");
+  if(!phone)return alert("Nomor WhatsApp wajib diisi.");
+  if(!/^\\+?[0-9\\s-]{8,16}$/.test(phone))return alert("Nomor WhatsApp tidak valid.");
+  $("trackOrderModal").classList.remove("on");
   await startTrackedOrder(id,phone);
 }
+function closeTrackOrder(){$("trackOrderModal").classList.remove("on")}
 function closeOrderDetail(){
   $("orderDetailModal").classList.remove("on");
   clearInterval(trackedOrderTimer);trackedOrderTimer=null;
