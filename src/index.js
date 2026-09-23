@@ -98,6 +98,19 @@ export default {
         return json({ok:true,products:r.results});
       }
 
+      if (request.method === "GET" && url.pathname === "/api/order-status") {
+        const id = String(url.searchParams.get("id") || "").trim();
+        const phone = String(url.searchParams.get("phone") || "").replace(/[^0-9]/g,"");
+        if (!id || phone.length < 8) return json({ok:false,message:"Nomor pesanan dan WhatsApp wajib diisi."},400);
+        const order = await env.DB.prepare("SELECT id,created_at,customer_name,customer_phone,items,total,status,payment_method,paid,change_amount,discount,promo_code FROM orders WHERE id=? LIMIT 1").bind(id).first();
+        if (!order) return json({ok:false,message:"Pesanan tidak ditemukan."},404);
+        const savedPhone = String(order.customer_phone || "").replace(/[^0-9]/g,"");
+        const normalize = p => p.startsWith("62") ? p : p.startsWith("0") ? "62"+p.slice(1) : p.startsWith("8") ? "62"+p : p;
+        if (normalize(savedPhone) !== normalize(phone)) return json({ok:false,message:"Nomor WhatsApp tidak cocok dengan pesanan."},403);
+        let items=[]; try { items=JSON.parse(order.items||"[]"); if(!Array.isArray(items)) items=[]; } catch(e) {}
+        return json({ok:true,order:{...order,items}});
+      }
+
       if (request.method !== "POST") return json({ok:false,message:"Method tidak diizinkan."},405);
       const body = await request.json().catch(()=>({}));
       const action = body.action;
