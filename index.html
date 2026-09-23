@@ -408,8 +408,16 @@ function compressImage(file){
   });
 }
 async function load(){
-  const r=await fetch("/api/products").then(x=>x.json()).catch(()=>({ok:false}));
-  products=(r.ok&&Array.isArray(r.products)&&r.products.length)?r.products:DEFAULT_PRODUCTS;
+  const r=await fetch("/api/products?ts="+Date.now(),{cache:"no-store"}).then(x=>x.json()).catch(()=>({ok:false}));
+  if(r.ok&&Array.isArray(r.products)&&r.products.length){
+    products=r.products;
+    try{localStorage.setItem("nzal_products",JSON.stringify(products))}catch(e){}
+  }else{
+    try{
+      const saved=JSON.parse(localStorage.getItem("nzal_products")||"[]");
+      products=Array.isArray(saved)&&saved.length?saved:DEFAULT_PRODUCTS;
+    }catch(e){products=DEFAULT_PRODUCTS}
+  }
   renderCategories(); renderProducts(); renderCart();
 }
 function add(id){
