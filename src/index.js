@@ -81,7 +81,12 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    if (url.pathname === "/admin" || url.pathname === "/admin/") {\n      const adminUrl = new URL("/admin/index.html", request.url);\n      return env.ASSETS.fetch(adminUrl);\n    }\n\n    if (!url.pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
+    if (url.pathname === "/admin" || url.pathname === "/admin/") {
+      const adminUrl = new URL("/admin/index.html", request.url);
+      return env.ASSETS.fetch(adminUrl);
+    }
+
+    if (!url.pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
 
     if (!env.DB) return json({ok:false,message:"D1 belum terpasang sebagai binding DB di Worker."},500);
 
