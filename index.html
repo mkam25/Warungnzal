@@ -248,7 +248,7 @@ async function checkout(){
   if(!cart.length)return alert("Keranjang kosong.");
   const items=cart.map(x=>{
     const p=products.find(a=>a.id===x.id);
-    return p?{name:p.name,qty:x.qty,price:p.price}:null;
+    return p?{id:p.id,name:p.name,qty:x.qty,price:p.price}:null;
   }).filter(Boolean);
   const total=items.reduce((s,x)=>s+x.qty*x.price,0);
 
