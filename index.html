@@ -331,7 +331,7 @@ async function fetchTrackedOrder(showError=true,openModal=true){
   if(openModal) $("orderDetailModal").classList.add("on");
   return true;
 }
-async async function startTrackedOrder(id,phone){
+async function startTrackedOrder(id,phone){
   trackedOrderId=String(id||"").trim().toUpperCase();
   trackedOrderPhone=String(phone||"").trim();
   if(!trackedOrderId||!trackedOrderPhone)return;
