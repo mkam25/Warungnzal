@@ -178,3 +178,93 @@ async function api(action,data={}){
     return await r.json();
   }catch(e){return {ok:false,error:e.message};}
 }
+
+<script>
+function renderProducts(){
+  const box=$("products");
+  if(!products.length){box.innerHTML='<div class="empty">Menu belum tersedia.</div>';return}
+  box.innerHTML=products.map(p=>`<article class="card">
+    <div class="pic" style="--bg:${p.bg||"#f7c6d9"}"><div class="ice" style="--flavor:${p.bg||"#f7c6d9"}"></div></div>
+    <h3>${p.emoji||"🍦"} ${escapeHtml(p.name)}</h3>
+    <div class="price">${money(Number(p.price)||0)}</div>
+    <div class="sub">${escapeHtml(p.description||"Ice Cream Gabin")}</div>
+    <button class="add" onclick="add(${Number(p.id)})">+ Tambah</button>
+  </article>`).join("");
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+async function load(){
+  const r=await fetch("/api/products").then(x=>x.json()).catch(()=>({ok:false}));
+  products=(r.ok&&Array.isArray(r.products)&&r.products.length)?r.products:DEFAULT_PRODUCTS;
+  renderProducts(); renderCart();
+}
+function add(id){
+  const p=products.find(x=>Number(x.id)===Number(id)); if(!p)return;
+  const x=cart.find(x=>Number(x.id)===Number(id));
+  if(x)x.qty++; else cart.push({id:Number(p.id),qty:1});
+  localStorage.nzal_cart=JSON.stringify(cart); renderCart(); openCart();
+}
+function renderCart(){
+  const list=$("cartList"); let total=0,count=0;
+  if(!cart.length){list.innerHTML='<div class="empty">Keranjang masih kosong.</div>'}
+  else list.innerHTML=cart.map(x=>{
+    const p=products.find(p=>Number(p.id)===Number(x.id)); if(!p)return "";
+    const sub=Number(p.price)*Number(x.qty); total+=sub; count+=Number(x.qty);
+    return `<div class="item"><div><b>${p.emoji||"🍦"} ${escapeHtml(p.name)}</b><br><small>${money(p.price)} × ${x.qty}</small></div><div class="qty"><button onclick="changeQty(${p.id},-1)">−</button> <b>${x.qty}</b> <button onclick="changeQty(${p.id},1)">+</button></div></div>`;
+  }).join("");
+  $("count").textContent=count; $("total").textContent=money(total);
+}
+function changeQty(id,d){
+  const x=cart.find(x=>Number(x.id)===Number(id)); if(!x)return;
+  x.qty+=d; if(x.qty<=0)cart=cart.filter(y=>Number(y.id)!==Number(id));
+  localStorage.nzal_cart=JSON.stringify(cart); renderCart();
+}
+function openCart(){$("overlay").classList.add("on");$("drawer").classList.add("on")}
+function closeCart(){$("overlay").classList.remove("on");$("drawer").classList.remove("on")}
+function goToMenu(){$("menu").scrollIntoView({behavior:"smooth"})}
+function checkout(){
+  if(!cart.length)return alert("Keranjang masih kosong.");
+  const lines=cart.map(x=>{const p=products.find(p=>Number(p.id)===Number(x.id));return p?`${p.name} x${x.qty}`:""}).filter(Boolean);
+  const total=cart.reduce((s,x)=>{const p=products.find(p=>Number(p.id)===Number(x.id));return s+(p?Number(p.price)*x.qty:0)},0);
+  api("save-order",{items:cart,customer:{name:"",phone:"",address:""}}).then(r=>{
+    if(!r.ok){alert(r.message||"Pesanan gagal disimpan.");return}
+    const text=encodeURIComponent("Halo Warung Nzal, saya mau pesan:\n"+lines.join("\n")+"\nTotal: "+money(total)+"\nID Pesanan: "+r.order.id);
+    window.open("https://wa.me/6281953154549?text="+text,"_blank");
+    cart=[];localStorage.nzal_cart="[]";renderCart();closeCart();
+  });
+}
+function openAdmin(){$("adminModal").classList.add("on");$("pass").focus()}
+function closeAdmin(){$("adminModal").classList.remove("on")}
+async function login(){
+  const pass=$("pass").value;
+  const r=await api("login",{password:pass});
+  if(!r.ok){alert(r.message||"Password salah.");return}
+  token=r.token;$("login").style.display="none";$("admin").style.display="block";await refreshAdmin();
+}
+async function refreshAdmin(){
+  const r=await api("admin-data"); if(!r.ok){alert(r.message||"Gagal mengambil data admin.");return}
+  adminData=r; $("sProd").textContent=r.products.length; $("sOrder").textContent=r.orders.length;
+  $("sSales").textContent=money(r.orders.reduce((s,o)=>s+Number(o.total||0),0));
+  $("menuTable").innerHTML=r.products.map(p=>`<tr><td>${escapeHtml(p.name)}</td><td>${money(p.price)}</td><td><button class="danger" onclick="deleteProduct(${p.id})">Hapus</button></td></tr>`).join("");
+  $("orderTable").innerHTML=r.orders.length?r.orders.map(o=>`<tr><td><b>${o.id}</b><br>${new Date(o.created_at).toLocaleString("id-ID")}</td><td>${money(o.total)}</td><td><select class="status" onchange="updateStatus('${o.id}',this.value)"><option ${o.status==="Baru"?"selected":""}>Baru</option><option ${o.status==="Diproses"?"selected":""}>Diproses</option><option ${o.status==="Selesai"?"selected":""}>Selesai</option></select></td></tr>`).join(""):'<tr><td>Belum ada pesanan.</td></tr>';
+}
+function showTab(id,btn){
+  document.querySelectorAll(".panel").forEach(x=>x.classList.remove("show"));
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  $(id).classList.add("show");btn.classList.add("active");
+}
+async function addProduct(){
+  const p={name:$("n").value.trim(),price:Number($("p").value)||0,emoji:$("e").value.trim()||"🍦",bg:$("bg").value};
+  if(!p.name)return alert("Nama produk wajib diisi.");
+  const r=await api("add-product",{product:p}); if(!r.ok)return alert(r.message||"Gagal menambah produk.");
+  $("n").value="";$("e").value="";await load();await refreshAdmin();
+}
+async function deleteProduct(id){
+  if(!confirm("Hapus produk ini?"))return;
+  const r=await api("delete-product",{id});if(!r.ok)return alert(r.message||"Gagal menghapus produk.");
+  await load();await refreshAdmin();
+}
+async function updateStatus(id,status){
+  const r=await api("update-status",{id,status});if(!r.ok)alert(r.message||"Gagal memperbarui status.");
+}
+load();
+</script>
