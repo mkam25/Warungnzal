@@ -191,7 +191,12 @@ export default {
         if (reportStart) { reportQuery += " AND date(created_at) >= ?"; reportParams.push(reportStart); }
         if (reportEnd) { reportQuery += " AND date(created_at) <= ?"; reportParams.push(reportEnd); }
         reportQuery += " ORDER BY created_at DESC LIMIT 500";
-        const reportResult = await env.DB.prepare(reportQuery).bind(...reportParams).all();
+        let reportResult={results:[]};
+        try {
+          reportResult = reportParams.length
+            ? await env.DB.prepare(reportQuery).bind(...reportParams).all()
+            : await env.DB.prepare(reportQuery).all();
+        } catch(e) { console.error("admin-data report:",e); }
         const reportOrders = reportResult.results || [];
         const reportSummary = {
           orders: reportOrders.length,
