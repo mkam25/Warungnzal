@@ -166,6 +166,7 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
   <div class="actions">
     <button class="cta pink" type="button" onclick="goToMenu()">🍦 Lihat Menu</button>
     <a class="cta green" target="_blank" rel="noopener" href="https://wa.me/6281953154549?text=Halo%20Warung%20Nzal%2C%20saya%20mau%20pesan">💬 WhatsApp</a>
+    <button class="cta" type="button" onclick="checkOrderStatus()">📦 Cek Pesanan</button>
   </div>
 </section>
 
@@ -571,6 +572,17 @@ function resetAdminView(){
 }
 window.addEventListener("pageshow",async()=>{resetAdminView();if(token){$("login").style.display="none";$("admin").style.display="block";await refreshAdmin()}});
 function logoutAdmin(){token=null;try{localStorage.removeItem("nzal_admin_token");sessionStorage.removeItem("nzal_admin_token")}catch(e){}$("admin").style.display="none";$("login").style.display="block";$("pass").value="";$("adminModal").classList.remove("on");document.querySelectorAll(".panel").forEach(x=>x.classList.remove("show"));const dash=$("dash");if(dash)dash.classList.add("show")}
+async function checkOrderStatus(){
+  const id=String(prompt("Masukkan nomor pesanan (contoh: WN-ABC123)")||"").trim().toUpperCase();
+  if(!id)return;
+  const phone=String(prompt("Masukkan nomor WhatsApp yang dipakai saat checkout")||"").trim();
+  if(!phone)return;
+  const r=await fetch("/api/order-status?id="+encodeURIComponent(id)+"&phone="+encodeURIComponent(phone)).then(x=>x.json()).catch(()=>({ok:false,message:"Server tidak dapat dihubungi."}));
+  if(!r.ok)return alert(r.message||"Pesanan tidak ditemukan.");
+  const o=r.order||{};
+  const items=(o.items||[]).map(x=>x.name+" × "+x.qty+" = "+money(x.subtotal)).join("\n");
+  alert("📦 PESANAN "+o.id+"\n\nStatus: "+(o.status||"Baru")+"\nPemesan: "+(o.customer_name||"-")+"\nTotal: "+money(o.total||0)+"\nPembayaran: "+(o.payment_method||"Tunai")+"\n\n"+items);
+}
 function openAdmin(){$("adminModal").classList.add("on");$("pass").focus()}
 function closeAdmin(){$("adminModal").classList.remove("on")}
 async function login(){
