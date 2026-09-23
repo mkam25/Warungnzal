@@ -45,6 +45,9 @@ async function init(db) {
   const orderColumns = await db.prepare("PRAGMA table_info(orders)").all();
   const orderNames = new Set((orderColumns.results || []).map(x => x.name));
   const orderMigrations = [];
+  if (!orderNames.has("customer_name")) orderMigrations.push(db.prepare("ALTER TABLE orders ADD COLUMN customer_name TEXT DEFAULT ''"));
+  if (!orderNames.has("customer_phone")) orderMigrations.push(db.prepare("ALTER TABLE orders ADD COLUMN customer_phone TEXT DEFAULT ''"));
+  if (!orderNames.has("customer_address")) orderMigrations.push(db.prepare("ALTER TABLE orders ADD COLUMN customer_address TEXT DEFAULT ''"));
   if (!orderNames.has("payment_method")) orderMigrations.push(db.prepare("ALTER TABLE orders ADD COLUMN payment_method TEXT DEFAULT 'Tunai'"));
   if (!orderNames.has("paid")) orderMigrations.push(db.prepare("ALTER TABLE orders ADD COLUMN paid INTEGER DEFAULT 0"));
   if (!orderNames.has("change_amount")) orderMigrations.push(db.prepare("ALTER TABLE orders ADD COLUMN change_amount INTEGER DEFAULT 0"));
@@ -157,7 +160,7 @@ export default {
         const promoRows=await env.DB.prepare("SELECT code,type,value,active FROM promotions ORDER BY code DESC LIMIT 50").all();
         const p = await products(env.DB);
         const o = await env.DB.prepare("SELECT * FROM orders ORDER BY created_at DESC LIMIT 1000").all();
-        const orders=o.results.map(x=>({...x,items:JSON.parse(x.items||"[]")}));
+        const orders=o.results.map(x=>{ let items=[]; try{ items=JSON.parse(x.items||"[]"); if(!Array.isArray(items)) items=[]; }catch(e){ items=[]; } return {...x,items}; });
         const now=new Date();
         const today=now.toISOString().slice(0,10);
         const weekStart=new Date(now); weekStart.setDate(now.getDate()-6);
