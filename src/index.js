@@ -333,6 +333,16 @@ export default {
         return json({ok:true});
       }
 
+      if (action === "confirm-payment-process") {
+        const id=String(body.id||"");
+        const order=await env.DB.prepare("SELECT id,status,payment_method FROM orders WHERE id=? LIMIT 1").bind(id).first();
+        if(!order)return json({ok:false,message:"Pesanan tidak ditemukan."},404);
+        if(!["QRIS","Transfer"].includes(String(order.payment_method||"")))return json({ok:false,message:"Aksi ini hanya untuk pembayaran QRIS atau Transfer."},400);
+        if(order.status!=="Menunggu Pembayaran")return json({ok:false,message:"Pesanan ini tidak lagi menunggu konfirmasi pembayaran."},400);
+        await env.DB.prepare("UPDATE orders SET status=? WHERE id=?").bind("Diproses",id).run();
+        return json({ok:true,status:"Diproses"});
+      }
+
       if (action === "update-status") {
         const allowed = ["Menunggu Pembayaran","Dibayar","Baru","Diproses","Siap","Selesai","Batal"];
         const status = allowed.includes(body.status) ? body.status : "Baru";
