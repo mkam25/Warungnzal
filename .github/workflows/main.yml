@@ -16,7 +16,7 @@ jobs:
       - name: Deploy to Netlify
         uses: netlify/actions/cli@3185065f4ab2f6df6f2ef41ee013626e1c02a426
         with:
-          args: deploy --prod
+          args: deploy --prod --dir=. --site=warungnzals
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
