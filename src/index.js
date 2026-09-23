@@ -46,6 +46,8 @@ async function init(db) {
   if (!orderNames.has("payment_method")) orderMigrations.push(db.prepare("ALTER TABLE orders ADD COLUMN payment_method TEXT DEFAULT 'Tunai'"));
   if (!orderNames.has("paid")) orderMigrations.push(db.prepare("ALTER TABLE orders ADD COLUMN paid INTEGER DEFAULT 0"));
   if (!orderNames.has("change_amount")) orderMigrations.push(db.prepare("ALTER TABLE orders ADD COLUMN change_amount INTEGER DEFAULT 0"));
+  if (!orderNames.has("discount")) orderMigrations.push(db.prepare("ALTER TABLE orders ADD COLUMN discount INTEGER DEFAULT 0"));
+  if (!orderNames.has("promo_code")) orderMigrations.push(db.prepare("ALTER TABLE orders ADD COLUMN promo_code TEXT DEFAULT ''));
   if (orderMigrations.length) await db.batch(orderMigrations);
 
   // Seed defaults only once. Never recreate them just because an admin deleted all products.
@@ -106,7 +108,15 @@ export default {
           return {id:p.id,name:p.name,price:p.price,qty,subtotal:p.price*qty};
         }).filter(Boolean);
         if (!items.length) return json({ok:false,message:"Keranjang kosong."},400);
-        const total = items.reduce((s,x)=>s+x.subtotal,0);
+        const subtotal = items.reduce((s,x)=>s+x.subtotal,0);
+        const promoCode=String(body.promo_code||"").trim().toUpperCase();
+        let discount=0;
+        if(promoCode){
+          const promo=await env.DB.prepare("SELECT code,type,value FROM promotions WHERE code=? AND active=1 LIMIT 1").bind(promoCode).first();
+          if(!promo)return json({ok:false,message:"Kode promo tidak valid atau sudah tidak aktif."},400);
+          discount=promo.type==="fixed"?Math.min(subtotal,Math.max(0,Number(promo.value)||0)):Math.min(subtotal,Math.round(subtotal*Math.max(0,Math.min(100,Number(promo.value)||0))/100));
+        }
+        const total=Math.max(0,subtotal-discount);
         const paymentMethod = ["Tunai","QRIS","Transfer"].includes(body.payment_method) ? body.payment_method : "Tunai";
         const paid = Math.max(0, Math.round(Number(body.paid)||0));
         if (paymentMethod === "Tunai" && paid < total) return json({ok:false,message:"Uang dibayar masih kurang."},400);
@@ -123,16 +133,17 @@ export default {
           if (!stock || Number(stock.stock) < Number(item.qty)) return json({ok:false,message:"Stok produk tidak mencukupi. Silakan cek menu kembali."},409);
         }
         const statements = items.map(item => env.DB.prepare("UPDATE products SET stock=stock-? WHERE id=? AND stock>=?").bind(item.qty,item.id,item.qty));
-        statements.push(env.DB.prepare("INSERT INTO orders (id,created_at,customer_name,customer_phone,customer_address,items,total,payment_method,paid,change_amount,status) VALUES (?,?,?,?,?,?,?,?,?,?,?)")
-          .bind(id,new Date().toISOString(),String(body.customer?.name||""),String(body.customer?.phone||""),String(body.customer?.address||""),JSON.stringify(items),total,paymentMethod,paid,changeAmount,"Baru"));
+        statements.push(env.DB.prepare("INSERT INTO orders (id,created_at,customer_name,customer_phone,customer_address,items,total,payment_method,paid,change_amount,status,discount,promo_code) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)")
+          .bind(id,new Date().toISOString(),String(body.customer?.name||""),String(body.customer?.phone||""),String(body.customer?.address||""),JSON.stringify(items),total,paymentMethod,paid,changeAmount,"Baru",discount,promoCode));
         await env.DB.batch(statements);
-        return json({ok:true,order:{id,total,items,payment_method:paymentMethod,paid,change_amount:changeAmount,status:"Baru"}});
+        return json({ok:true,order:{id,subtotal,total,discount,promo_code:promoCode,items,payment_method:paymentMethod,paid,change_amount:changeAmount,status:"Baru"}});
       }
 
       if (!authorized(request,env)) return json({ok:false,message:"Sesi admin tidak valid."},401);
 
       if (action === "admin-data") {
         const customerRows=await env.DB.prepare("SELECT phone,name,address,MAX(created_at) last_order,COUNT(*) orders,SUM(total) total_spent FROM orders WHERE customer_phone<>'' AND status<>'Batal' GROUP BY customer_phone ORDER BY last_order DESC LIMIT 500").all();
+        const promoRows=await env.DB.prepare("SELECT id,code,type,value,active FROM promotions ORDER BY id DESC LIMIT 50").all();
         const p = await products(env.DB);
         const o = await env.DB.prepare("SELECT * FROM orders ORDER BY created_at DESC LIMIT 1000").all();
         const orders=o.results.map(x=>({...x,items:JSON.parse(x.items||"[]")}));
@@ -167,10 +178,22 @@ export default {
           qris: reportOrders.filter(x=>x.payment_method==="QRIS").reduce((n,x)=>n+Number(x.total||0),0),
           transfer: reportOrders.filter(x=>x.payment_method==="Transfer").reduce((n,x)=>n+Number(x.total||0),0)
         };
-        return json({ok:true,customers:customerRows.results||[],products:p.results,orders,stats:{
+        return json({ok:true,promotions:promoRows.results||[],customers:customerRows.results||[],products:p.results,orders,stats:{
           todayOrders:todayOrders.length,salesToday,weekOrders:weekOrders.length,salesWeek,
           topProducts
         },report:{orders:reportOrders,summary:reportSummary}});
+      }
+
+      if (action === "save-promo") {
+        const p=body.promo||{};
+        const code=String(p.code||"").trim().toUpperCase();
+        const type=p.type==="fixed"?"fixed":"percent";
+        const value=Math.max(0,Math.round(Number(p.value)||0));
+        const active=p.active===false?0:1;
+        if(!code)return json({ok:false,message:"Kode promo wajib diisi."},400);
+        if(type==="percent"&&value>100)return json({ok:false,message:"Diskon persen maksimal 100%."},400);
+        await env.DB.prepare("INSERT INTO promotions(code,type,value,active,created_at) VALUES (?,?,?,?,?) ON CONFLICT(code) DO UPDATE SET type=excluded.type,value=excluded.value,active=excluded.active").bind(code,type,value,active,new Date().toISOString()).run();
+        return json({ok:true});
       }
 
       if (action === "add-product") {
@@ -181,7 +204,7 @@ export default {
         }
         const max = await env.DB.prepare("SELECT COALESCE(MAX(id),0) AS m FROM products").first();
         const id = Number(max.m)+1;
-        await env.DB.prepare("INSERT INTO products (id,name,price,emoji,bg,description,image) VALUES (?,?,?,?,?,?,?)")
+        await env.DB.prepare("INSERT INTO products (id,name,price,emoji,bg,description,image,stock,reorder_level) VALUES (?,?,?,?,?,?,?,?,?)")
           .bind(id,String(p.name||"Produk").trim(),Math.max(0,Number(p.price)||0),String(p.emoji||"🍦"),String(p.bg||"#f7c6d9"),String(p.description||""),image,Math.max(0,Math.round(Number(p.stock)||0)),Math.max(0,Math.round(Number(p.reorder_level)||5))).run();
         return json({ok:true});
       }
