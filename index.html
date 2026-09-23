@@ -323,32 +323,40 @@ function statusSteps(status){
   const active=steps.indexOf(order);
   return steps.map((s,i)=>'<div style="display:flex;align-items:center;gap:10px;padding:7px 0"><span style="width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:'+(s==="Batal"?'#ffe8ed':i<=active?'#19b957':'#eee')+';color:'+(i<=active||s==="Batal"?'#fff':'#888')+';font-weight:800">'+(i<=active||s==="Batal"?'✓':i+1)+'</span><b style="color:'+(i<=active||s==="Batal"?'#4a2418':'#999')+'">'+statusLabel(s)+'</b></div>').join("");
 }
-async function fetchTrackedOrder(showError=true){
+async function fetchTrackedOrder(showError=true,openModal=true){
   if(!trackedOrderId||!trackedOrderPhone)return false;
   const r=await fetch("/api/order-status?id="+encodeURIComponent(trackedOrderId)+"&phone="+encodeURIComponent(trackedOrderPhone)+"&ts="+Date.now(),{cache:"no-store"}).then(x=>x.json()).catch(()=>({ok:false,message:"Server tidak dapat dihubungi."}));
   if(!r.ok){if(showError)alert(r.message||"Pesanan tidak ditemukan.");return false;}
   const o=r.order||{};
   const items=(o.items||[]).map(x=>'<div class="receipt-row"><span>'+escapeHtml(x.name||"Produk")+' × '+Number(x.qty||0)+'</span><b>'+money(x.subtotal||0)+'</b></div>').join("");
   $("orderDetailContent").innerHTML='<div class="receipt-head"><h2>📦 '+escapeHtml(o.id)+'</h2><small>'+new Date(o.created_at).toLocaleString("id-ID")+'</small></div><div style="margin:14px 0;padding:10px 12px;border-radius:12px;background:#fff5fa;text-align:center"><div style="font-size:13px;color:#777">Status Pesanan</div><div style="font-size:22px;color:#ff3f86;font-weight:800">'+escapeHtml(statusLabel(o.status))+'</div></div><div style="margin:10px 0">'+statusSteps(o.status)+'</div><div style="border-top:1px solid #eee;padding-top:10px">'+items+'</div><div class="receipt-total receipt-row"><span>TOTAL</span><b>'+money(o.total||0)+'</b></div><div class="receipt-row"><span>Pembayaran</span><b>'+escapeHtml(o.payment_method||"Tunai")+'</b></div>'+(o.payment_method!=="Tunai"&&o.status==="Menunggu Pembayaran"?'<div style="margin-top:10px;padding:10px;border-radius:10px;background:#fff5d8;color:#8a6200;text-align:center;font-weight:700">⏳ Pembayaran sedang menunggu konfirmasi admin.</div>':"")+'<div style="margin-top:12px;text-align:center;font-size:12px;color:#777">Status diperbarui otomatis.</div>';
-  $("orderDetailModal").classList.add("on");
+  if(openModal) $("orderDetailModal").classList.add("on");
   return true;
+}
+async function startTrackedOrder(id,phone){
+  trackedOrderId=String(id||"").trim().toUpperCase();
+  trackedOrderPhone=String(phone||"").trim();
+  if(!trackedOrderId||!trackedOrderPhone)return;
+  try{
+    localStorage.setItem("nzal_tracked_order_id",trackedOrderId);
+    localStorage.setItem("nzal_tracked_order_phone",trackedOrderPhone);
+  }catch(e){}
+  clearInterval(trackedOrderTimer);
+  await fetchTrackedOrder(false,true);
+  trackedOrderTimer=setInterval(()=>fetchTrackedOrder(false,false),5000);
 }
 async function checkOrderStatus(){
   const id=String(prompt("Masukkan nomor pesanan (contoh: WN-ABC123)")||"").trim().toUpperCase();
   if(!id)return;
   const phone=String(prompt("Masukkan nomor WhatsApp yang dipakai saat checkout")||"").trim();
   if(!phone)return;
-  trackedOrderId=id;trackedOrderPhone=phone;
-  await fetchTrackedOrder(true);
-  clearInterval(trackedOrderTimer);
-  if($("orderDetailModal").classList.contains("on")){
-    trackedOrderTimer=setInterval(()=>fetchTrackedOrder(false),15000);
-  }
+  await startTrackedOrder(id,phone);
 }
 function closeOrderDetail(){
   $("orderDetailModal").classList.remove("on");
   clearInterval(trackedOrderTimer);trackedOrderTimer=null;
   trackedOrderId="";trackedOrderPhone="";
+  try{localStorage.removeItem("nzal_tracked_order_id");localStorage.removeItem("nzal_tracked_order_phone")}catch(e){}
 }
 
 const DEFAULT_PRODUCTS = [
@@ -562,6 +570,7 @@ async function payNow(){
   const r=await api("save-order",{items:cart,customer,payment_method:selectedPayment,paid,promo_code});
   if(!r.ok)return alert(r.message||"Transaksi gagal disimpan.");
   const order=r.order;
+  await startTrackedOrder(order.id,customer.phone);
   lastReceipt={...order,created_at:new Date().toISOString()};
   $("receiptContent").innerHTML=renderReceipt(lastReceipt);
   cart=[];localStorage.nzal_cart="[]";renderCart();
@@ -700,6 +709,15 @@ async function notifyNewOrder(order){
     if(reg) await reg.showNotification("🔔 Pesanan Baru - Warung Nzal",{body:"Pesanan "+order.id+" dari "+(order.customer_name||"Pelanggan")+" • "+money(order.total||0),tag:"order-"+order.id});
   }catch(e){}
 }
+
+try{
+  const savedTrackedId=localStorage.getItem("nzal_tracked_order_id");
+  const savedTrackedPhone=localStorage.getItem("nzal_tracked_order_phone");
+  if(savedTrackedId&&savedTrackedPhone){
+    trackedOrderId=savedTrackedId;trackedOrderPhone=savedTrackedPhone;
+    trackedOrderTimer=setInterval(()=>fetchTrackedOrder(false,false),5000);
+  }
+}catch(e){}
 </script>
 </body>
 </html>
