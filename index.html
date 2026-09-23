@@ -93,9 +93,13 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
   .title{margin:24px 0 14px}
   .title h1{font-size:29px;line-height:1.05}
   .title p{font-size:12px}
-  .actions{padding:10px}
+  .actions{padding:10px;display:flex;flex-wrap:wrap;justify-content:center}
   .cta{padding:11px 15px;font-size:13px}
   .hero{border-radius:20px}
+  .box{padding:12px;border-radius:18px}
+  .modal{padding:8px}
+  .drawer{width:100%;max-width:none}
+  .table th,.table td{padding:7px;font-size:12px}
 }
 @media(max-width:380px){
   .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
@@ -103,6 +107,14 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
   .card h3{font-size:15px}
   .add{font-size:12px}
   .admin{display:none}
+}
+@media(pointer:coarse) and (max-width:850px){
+  .pill,.cta,.add,.full,.smallbtn,.tab,.close,.qty button{min-height:42px}
+  .add{font-size:14px}
+}
+@media(min-width:851px){
+  .hero .actions{padding:18px}
+  .hero .cta{min-width:150px}
 }
 </style>
 </head>
