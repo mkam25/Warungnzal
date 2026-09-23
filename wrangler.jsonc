@@ -10,7 +10,6 @@
     "run_worker_first": [
       "/api",
       "/api/*",
-      "/api/image/*",
       "/admin",
       "/admin/*"
     ]
