@@ -22,13 +22,30 @@ async function init(db) {
       id TEXT PRIMARY KEY, created_at TEXT NOT NULL, customer_name TEXT DEFAULT '',
       customer_phone TEXT DEFAULT '', customer_address TEXT DEFAULT '',
       items TEXT NOT NULL, total INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'Baru'
+    )`),
+    db.prepare(`CREATE TABLE IF NOT EXISTS app_settings (
+      key TEXT PRIMARY KEY, value TEXT NOT NULL DEFAULT ''
     )`)
   ]);
-  const row = await db.prepare("SELECT COUNT(*) AS n FROM products").first();
-  if (!row || Number(row.n) === 0) {
-    await db.batch(DEFAULT_PRODUCTS.map(p => db.prepare(
-      "INSERT INTO products (id,name,price,emoji,bg) VALUES (?,?,?,?,?)"
-    ).bind(p.id,p.name,p.price,p.emoji,p.bg)));
+
+  // Keep older databases compatible if they were created before description/image existed.
+  const columns = await db.prepare("PRAGMA table_info(products)").all();
+  const names = new Set((columns.results || []).map(x => x.name));
+  const migrations = [];
+  if (!names.has("description")) migrations.push(db.prepare("ALTER TABLE products ADD COLUMN description TEXT DEFAULT ''"));
+  if (!names.has("image")) migrations.push(db.prepare("ALTER TABLE products ADD COLUMN image TEXT DEFAULT ''"));
+  if (migrations.length) await db.batch(migrations);
+
+  // Seed defaults only once. Never recreate them just because an admin deleted all products.
+  const seeded = await db.prepare("SELECT value FROM app_settings WHERE key='products_seeded'").first();
+  if (!seeded) {
+    const row = await db.prepare("SELECT COUNT(*) AS n FROM products").first();
+    if (!row || Number(row.n) === 0) {
+      await db.batch(DEFAULT_PRODUCTS.map(p => db.prepare(
+        "INSERT INTO products (id,name,price,emoji,bg,description,image) VALUES (?,?,?,?,?,?,?)"
+      ).bind(p.id,p.name,p.price,p.emoji,p.bg,"Ice Cream Gabin","")));
+    }
+    await db.prepare("INSERT OR REPLACE INTO app_settings (key,value) VALUES ('products_seeded','1')").run();
   }
 }
 
