@@ -219,7 +219,7 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
       <button class="pay-btn active" data-pay="Tunai" onclick="selectPayment('Tunai',this)">💵 Tunai</button>
       <button class="pay-btn" data-pay="QRIS" onclick="selectPayment('QRIS',this)">📱 QRIS</button>
       <button class="pay-btn" data-pay="Transfer" onclick="selectPayment('Transfer',this)">🏦 Transfer</button>
-    </div>
+    </div><div id="paymentInfo" style="margin-top:10px"></div>
     <div id="cashArea">
       <label>Uang diterima</label>
       <input id="paid" class="money-input" type="number" min="0" placeholder="Contoh: 50000" oninput="updateChange()">
@@ -425,7 +425,7 @@ async function load(){
 }
 
 // Initialize the live menu as soon as the page is ready.
-window.addEventListener("DOMContentLoaded",()=>{load();});
+window.addEventListener("DOMContentLoaded",()=>{load();loadPaymentSettings();});
 function add(id){
   const p=products.find(x=>Number(x.id)===Number(id)); if(!p)return;
   const stock=Math.max(0,Number(p.stock)||0);
@@ -459,6 +459,9 @@ function changeQty(id,d){
 function openCart(){$("overlay").classList.add("on");$("drawer").classList.add("on")}
 function closeCart(){$("overlay").classList.remove("on");$("drawer").classList.remove("on")}
 function goToMenu(){const menu=$("menu");if(menu)menu.scrollIntoView({behavior:"smooth",block:"start"})}window.goToMenu=goToMenu;
+let paymentSettings={qris_active:1,transfer_active:1,bank_name:"",account_number:"",account_name:"",qris_image:""};
+async function loadPaymentSettings(){const r=await fetch("/api/payment-settings?ts="+Date.now(),{cache:"no-store"}).then(x=>x.json()).catch(()=>({ok:false}));if(r.ok&&r.settings){paymentSettings=r.settings;const q=document.querySelector(".pay-btn[data-pay=\"QRIS\"]"),t=document.querySelector(".pay-btn[data-pay=\"Transfer\"]");if(q)q.style.display=Number(paymentSettings.qris_active)?"":"none";if(t)t.style.display=Number(paymentSettings.transfer_active)?"":"none";renderPaymentInfo();}}
+function renderPaymentInfo(){const box=$("paymentInfo");if(!box)return;if(selectedPayment==="QRIS"){box.innerHTML=paymentSettings.qris_image?'<div style="text-align:center;padding:10px;background:#fff;border:1px solid #eee;border-radius:12px"><b>Scan QRIS</b><br><img src="'+paymentSettings.qris_image+'" style="max-width:260px;width:100%;margin-top:8px;border-radius:8px"><div style="font-size:12px;margin-top:6px">Pastikan nominal sesuai total pembayaran.</div></div>':'<div class="muted">QRIS belum dikonfigurasi oleh admin.</div>';}else if(selectedPayment==="Transfer"){box.innerHTML=paymentSettings.bank_name||paymentSettings.account_number?'<div style="padding:12px;background:#fff;border:1px solid #eee;border-radius:12px"><b>Transfer Bank</b><br>Bank: '+escapeHtml(paymentSettings.bank_name||"-")+'<br>No. Rekening: <b>'+escapeHtml(paymentSettings.account_number||"-")+'</b><br>Atas Nama: '+escapeHtml(paymentSettings.account_name||"-")+'</div>':'<div class="muted">Rekening transfer belum dikonfigurasi oleh admin.</div>';}else box.innerHTML="";}
 let selectedPayment="Tunai";
 let lastReceipt=null;
 
@@ -488,6 +491,7 @@ function selectPayment(method,btn){
   document.querySelectorAll(".pay-btn").forEach(b=>b.classList.remove("active"));
   btn.classList.add("active");
   $("cashArea").style.display=method==="Tunai"?"block":"none";
+  renderPaymentInfo();
 }
 function updateChange(){
   const total=Number($("checkoutTotal").textContent.replace(/[^0-9]/g,""))||0;
