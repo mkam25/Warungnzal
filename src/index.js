@@ -36,6 +36,8 @@ async function init(db) {
   if (!names.has("image")) migrations.push(db.prepare("ALTER TABLE products ADD COLUMN image TEXT DEFAULT ''"));
   if (!names.has("stock")) migrations.push(db.prepare("ALTER TABLE products ADD COLUMN stock INTEGER NOT NULL DEFAULT 20"));
   if (!names.has("reorder_level")) migrations.push(db.prepare("ALTER TABLE products ADD COLUMN reorder_level INTEGER NOT NULL DEFAULT 5"));
+  await db.prepare("CREATE TABLE IF NOT EXISTS customers (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, phone TEXT DEFAULT '', address TEXT DEFAULT '', created_at TEXT NOT NULL)").run();
+  await db.prepare("CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone)").run();
   if (migrations.length) await db.batch(migrations);
 
   const orderColumns = await db.prepare("PRAGMA table_info(orders)").all();
@@ -110,6 +112,12 @@ export default {
         if (paymentMethod === "Tunai" && paid < total) return json({ok:false,message:"Uang dibayar masih kurang."},400);
         const changeAmount = paymentMethod === "Tunai" ? paid - total : 0;
         const id = "WN-"+Date.now().toString(36).toUpperCase();
+        const customerName=String(body.customer?.name||"").trim();
+        const customerPhone=String(body.customer?.phone||"").trim();
+        const customerAddress=String(body.customer?.address||"").trim();
+        if(customerName && customerPhone){
+          await env.DB.prepare("INSERT INTO customers(name,phone,address,created_at) VALUES (?,?,?,?)").bind(customerName,customerPhone,customerAddress,new Date().toISOString()).run();
+        }
         for (const item of items) {
           const stock = await env.DB.prepare("SELECT stock FROM products WHERE id=?").bind(item.id).first();
           if (!stock || Number(stock.stock) < Number(item.qty)) return json({ok:false,message:"Stok produk tidak mencukupi. Silakan cek menu kembali."},409);
@@ -124,6 +132,7 @@ export default {
       if (!authorized(request,env)) return json({ok:false,message:"Sesi admin tidak valid."},401);
 
       if (action === "admin-data") {
+        const customerRows=await env.DB.prepare("SELECT phone,name,address,MAX(created_at) last_order,COUNT(*) orders,SUM(total) total_spent FROM orders WHERE customer_phone<>'' AND status<>'Batal' GROUP BY customer_phone ORDER BY last_order DESC LIMIT 500").all();
         const p = await products(env.DB);
         const o = await env.DB.prepare("SELECT * FROM orders ORDER BY created_at DESC LIMIT 1000").all();
         const orders=o.results.map(x=>({...x,items:JSON.parse(x.items||"[]")}));
@@ -158,7 +167,7 @@ export default {
           qris: reportOrders.filter(x=>x.payment_method==="QRIS").reduce((n,x)=>n+Number(x.total||0),0),
           transfer: reportOrders.filter(x=>x.payment_method==="Transfer").reduce((n,x)=>n+Number(x.total||0),0)
         };
-        return json({ok:true,products:p.results,orders,stats:{
+        return json({ok:true,customers:customerRows.results||[],products:p.results,orders,stats:{
           todayOrders:todayOrders.length,salesToday,weekOrders:weekOrders.length,salesWeek,
           topProducts
         },report:{orders:reportOrders,summary:reportSummary}});
