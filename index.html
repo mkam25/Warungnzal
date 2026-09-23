@@ -329,7 +329,7 @@ const DEFAULT_PRODUCTS = [
 let products=[];
 let cart=JSON.parse(localStorage.nzal_cart||"[]");
 let token=null;
-try{token=sessionStorage.getItem("nzal_admin_token")||null}catch(e){}
+try{token=localStorage.getItem("nzal_admin_token")||sessionStorage.getItem("nzal_admin_token")||null}catch(e){}
 let adminData={products:[],orders:[]};
 
 const $=id=>document.getElementById(id);
@@ -533,7 +533,7 @@ function resetAdminView(){
   document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
   const firstTab=document.querySelector(".tabs .tab");if(firstTab)firstTab.classList.add("active");
 }
-window.addEventListener("pageshow",async()=>{resetAdminView();if(token){await refreshAdmin()}});
+window.addEventListener("pageshow",async()=>{resetAdminView();if(token){$("login").style.display="none";$("admin").style.display="block";await refreshAdmin()}});
 function openAdmin(){$("adminModal").classList.add("on");$("pass").focus()}
 function closeAdmin(){$("adminModal").classList.remove("on")}
 async function login(){
@@ -541,7 +541,7 @@ async function login(){
   const r=await api("login",{password:pass});
   if(!r.ok){alert(r.message||"Password salah.");return}
   token=r.token;
-  try{sessionStorage.setItem("nzal_admin_token",token)}catch(e){}
+  try{localStorage.setItem("nzal_admin_token",token);sessionStorage.setItem("nzal_admin_token",token)}catch(e){}
   $("login").style.display="none";$("admin").style.display="block";await refreshAdmin();
 }
 let orderFilter="Semua";
