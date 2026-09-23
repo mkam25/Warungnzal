@@ -474,6 +474,22 @@ async function checkPromo(){
   $("promoInfo").textContent="Promo aktif: hemat "+money(r.discount)+" • Total "+money(subtotal-r.discount);$("checkoutTotal").textContent=money(subtotal-r.discount);
 }
 async function payNow(){
+  if(!cart.length)return alert("Keranjang masih kosong.");
+  const fresh=await fetch("/api/products").then(x=>x.json()).catch(()=>({ok:false}));
+  if(!fresh.ok||!Array.isArray(fresh.products))return alert("Menu sedang tidak bisa diperbarui. Coba lagi.");
+  products=fresh.products;
+  for(const x of cart){
+    const p=products.find(p=>Number(p.id)===Number(x.id));
+    const stock=p?Math.max(0,Number(p.stock)||0):0;
+    if(!p)return alert("Ada produk yang sudah tidak tersedia. Keranjang akan diperbarui.");
+    if(Number(x.qty)>stock){
+      x.qty=stock;
+      if(x.qty<=0)cart=cart.filter(y=>Number(y.id)!==Number(x.id));
+      localStorage.nzal_cart=JSON.stringify(cart);
+      renderCart();
+      return alert("Stok "+p.name+" tidak mencukupi. Jumlah keranjang sudah disesuaikan.");
+    }
+  }
   const subtotal=cart.reduce((sum,x)=>{const p=products.find(p=>Number(p.id)===Number(x.id));return sum+(p?Number(p.price)*Number(x.qty):0)},0);
   const promo_code=String($("promoCode").value||"").trim().toUpperCase();
   let discount=0,total=subtotal;
