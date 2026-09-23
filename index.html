@@ -59,7 +59,8 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
 .row{display:flex;gap:8px;flex-wrap:wrap}.row input,.row select{padding:10px;border:1px solid #ddd;border-radius:10px}
 .tabs{margin:14px 0}.tab{border:0;background:#f7eef1;padding:9px 12px;border-radius:9px;margin-right:5px;font-weight:700}
 .active{background:var(--p)!important;color:#fff}.panel{display:none}.panel.show{display:block}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.stat-click{border:0;text-align:left;font:inherit;cursor:pointer;transition:transform .15s,box-shadow .15s}.stat-click:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.08)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.admin-notify-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px;padding:10px 12px;border:1px solid #eee;border-radius:12px;background:#fff}.admin-notify-bar span{font-size:12px;color:#666}
+.stat-click{border:0;text-align:left;font:inherit;cursor:pointer;transition:transform .15s,box-shadow .15s}.stat-click:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.08)}
 .stat{padding:14px;border-radius:15px;background:#fff5f8;border:1px solid var(--line)}
 .stat b{font-size:21px;display:block}
 .dashboard-note{font-size:12px;color:#92756b;margin:8px 0 14px}
@@ -247,6 +248,7 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
       <button class="cta pink" style="width:100%" onclick="login()">Masuk</button>
     </div>
     <div id="admin" style="display:none">
+      <div class="admin-notify-bar"><button class="smallbtn" onclick="enableOrderNotifications()">🔔 Aktifkan Notifikasi Pesanan</button><span id="notifyStatus">Notifikasi belum diaktifkan</span></div>
       <div class="tabs">
         <button class="tab active" onclick="showTab('dash',this)">Dashboard</button>
         <button class="tab" onclick="showTab('menuAdmin',this)">Menu</button>
@@ -525,9 +527,55 @@ function waCustomer(phone,id,status){
   const msg=encodeURIComponent("Halo, pesanan "+id+" di Warung Nzal sekarang: "+status+".");
   window.open("https://wa.me/"+num+"?text="+msg,"_blank");
 }
+let lastKnownOrderIds=new Set();
+let notificationReady=false;
+let orderPollTimer=null;
+async function enableOrderNotifications(){
+  if(!("Notification" in window)){alert("Browser ini belum mendukung notifikasi.");return;}
+  if(Notification.permission==="denied"){alert("Notifikasi diblokir. Izinkan notifikasi untuk situs Warung Nzal dari pengaturan browser.");return;}
+  const permission=Notification.permission==="granted"?"granted":await Notification.requestPermission();
+  notificationReady=permission==="granted";
+  $("notifyStatus").textContent=notificationReady?"🔔 Notifikasi aktif":"Notifikasi belum diaktifkan";
+  if(notificationReady){
+    playOrderSound();
+    alert("Notifikasi pesanan aktif.");
+    startOrderPolling();
+  }
+}
+function playOrderSound(){
+  try{
+    const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
+    const c=new C(),o=c.createOscillator(),g=c.createGain();
+    o.type="sine";o.frequency.value=880;g.gain.value=.08;o.connect(g);g.connect(c.destination);
+    o.start();o.stop(c.currentTime+.18);o.onended=()=>c.close();
+  }catch(e){}
+}
+async function notifyNewOrder(order){
+  playOrderSound();
+  if(!notificationReady||Notification.permission!=="granted")return;
+  try{
+    const reg=navigator.serviceWorker?.controller?await navigator.serviceWorker.getRegistration():null;
+    if(reg) await reg.showNotification("🔔 Pesanan Baru - Warung Nzal",{body:"Pesanan "+order.id+" dari "+(order.customer_name||"Pelanggan")+" • "+money(order.total||0),tag:"order-"+order.id});
+  }catch(e){}
+}
+function startOrderPolling(){
+  if(orderPollTimer)return;
+  orderPollTimer=setInterval(async()=>{
+    if(!token)return;
+    const r=await api("admin-data");if(!r.ok||!r.orders)return;
+    const current=new Set(r.orders.map(o=>String(o.id)));
+    const fresh=r.orders.filter(o=>String(o.status||"Baru")==="Baru"&&!lastKnownOrderIds.has(String(o.id)));
+    if(lastKnownOrderIds.size) fresh.forEach(notifyNewOrder);
+    lastKnownOrderIds=current;
+    adminData=r;
+    renderAdminOrders(r.orders);
+  },15000);
+}
 async function refreshAdmin(){
   const r=await api("admin-data"); if(!r.ok){alert(r.message||"Gagal mengambil data admin.");return} renderCustomers(r.customers||[]); renderPromoAdmin(r.promotions||[]);
   adminData=r;
+  if(lastKnownOrderIds.size===0) lastKnownOrderIds=new Set((r.orders||[]).map(o=>String(o.id)));
+  if(Notification?.permission==="granted"){notificationReady=true;$("notifyStatus").textContent="🔔 Notifikasi aktif";startOrderPolling();}
   $("sProd").textContent=r.products.length;
   const stats=r.stats||{};
   $("sOrder").textContent=stats.todayOrders||0;
