@@ -55,17 +55,15 @@ async function init(db) {
   if (!orderNames.has("promo_code")) orderMigrations.push(db.prepare("ALTER TABLE orders ADD COLUMN promo_code TEXT DEFAULT ''"));
   if (orderMigrations.length) await db.batch(orderMigrations);
 
-  // Seed defaults only once. Never recreate them just because an admin deleted all products.
-  const seeded = await db.prepare("SELECT value FROM app_settings WHERE key='products_seeded'").first();
-  if (!seeded) {
-    const row = await db.prepare("SELECT COUNT(*) AS n FROM products").first();
-    if (!row || Number(row.n) === 0) {
-      await db.batch(DEFAULT_PRODUCTS.map(p => db.prepare(
-        "INSERT INTO products (id,name,price,emoji,bg,description,image,category,stock,reorder_level) VALUES (?,?,?,?,?,?,?,?,?,?)"
-      ).bind(p.id,p.name,p.price,p.emoji,p.bg,"Ice Cream Gabin","",p.id===1?"Coklat":p.id===4||p.id===7?"Buah":p.id===6?"Matcha":"Special",20,5)));
-    }
-    await db.prepare("INSERT OR REPLACE INTO app_settings (key,value) VALUES ('products_seeded','1')").run();
+  // Self-heal an empty products table. This also fixes older databases
+  // where products_seeded was already set but the products were later removed.
+  const row = await db.prepare("SELECT COUNT(*) AS n FROM products").first();
+  if (!row || Number(row.n) === 0) {
+    await db.batch(DEFAULT_PRODUCTS.map(p => db.prepare(
+      "INSERT INTO products (id,name,price,emoji,bg,description,image,category,stock,reorder_level) VALUES (?,?,?,?,?,?,?,?,?,?)"
+    ).bind(p.id,p.name,p.price,p.emoji,p.bg,"Ice Cream Gabin","",p.id===1?"Coklat":p.id===4||p.id===7?"Buah":p.id===6?"Matcha":"Special",20,5)));
   }
+  await db.prepare("INSERT OR REPLACE INTO app_settings (key,value) VALUES ('products_seeded','1')").run();
 }
 
 async function products(db) {
