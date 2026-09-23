@@ -184,8 +184,8 @@ export default {
         const statusCounts={Baru:0,Diproses:0,Siap:0,Selesai:0,Batal:0};
         orders.forEach(o=>{const s=String(o.status||"Baru");if(Object.prototype.hasOwnProperty.call(statusCounts,s))statusCounts[s]++;});
         const url = new URL(request.url);
-        const reportStart = url.searchParams.get("start");
-        const reportEnd = url.searchParams.get("end");
+        const reportStart = url.searchParams.get("start") || String(body.start || "").trim() || null;
+        const reportEnd = url.searchParams.get("end") || String(body.end || "").trim() || null;
         let reportQuery = "SELECT id,created_at,customer_name,total,payment_method,status FROM orders WHERE status <> 'Batal'";
         const reportParams = [];
         if (reportStart) { reportQuery += " AND date(created_at) >= ?"; reportParams.push(reportStart); }
