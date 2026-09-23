@@ -204,6 +204,7 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
       <div id="checkoutItems"></div>
       <div class="receipt-total"><span>Total</span><span id="checkoutTotal">Rp0</span></div>
     </div>
+    <div style="display:flex;gap:8px;margin:12px 0;flex-wrap:wrap"><input id="promoCode" placeholder="Kode voucher" style="flex:1;min-width:150px;text-transform:uppercase"><button class="cta" onclick="checkPromo()">Pakai Promo</button></div><div id="promoInfo" style="font-size:12px;margin-bottom:10px"></div>
     <b>Metode Pembayaran</b>
     <div class="pay-grid">
       <button class="pay-btn active" data-pay="Tunai" onclick="selectPayment('Tunai',this)">💵 Tunai</button>
@@ -242,7 +243,7 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
       <div class="tabs">
         <button class="tab active" onclick="showTab('dash',this)">Dashboard</button>
         <button class="tab" onclick="showTab('menuAdmin',this)">Menu</button>
-        <button class="tab" onclick="showTab('orders',this)">Pesanan</button><button class="tab" onclick="showTab('reports',this)">Laporan</button><button class="tab" onclick="showTab('customers',this)">Pelanggan</button>
+        <button class="tab" onclick="showTab('orders',this)">Pesanan</button><button class="tab" onclick="showTab('reports',this)">Laporan</button><button class="tab" onclick="showTab('customers',this)">Pelanggan</button><button class="tab" onclick="showTab('promos',this)">Promo</button>
       </div>
       <div class="panel show" id="dash"><div class="stats">
         <div class="stat">Produk<b id="sProd">0</b></div>
@@ -274,7 +275,7 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
       </div>
 
       <div class="panel" id="orders">
-        <div style="overflow:auto"><table class="table"><thead><tr><th>Pesanan</th><th>Total</th><th>Bayar</th><th>Status</th></tr></thead><tbody id="orderTable"></tbody></table></div><div id="tab-customers" class="tab-panel" style="display:none"><div class="panel"><h3>👥 Pelanggan</h3><div style="overflow:auto"><table class="table"><thead><tr><th>Nama</th><th>WhatsApp</th><th>Alamat</th><th>Transaksi</th><th>Total Belanja</th></tr></thead><tbody id="customerRows"></tbody></table></div></div></div><div id="tab-reports" class="tab-panel" style="display:none"><div class="panel"><h3>📊 Laporan Penjualan</h3><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:end;margin:12px 0"><label>Dari<br><input id="reportStart" type="date"></label><label>Sampai<br><input id="reportEnd" type="date"></label><button class="cta pink" onclick="loadReport()">Tampilkan</button><button class="cta" onclick="exportReport()">Export CSV</button></div><div id="reportSummary" class="stats-grid"></div><div style="overflow:auto"><table class="table"><thead><tr><th>ID</th><th>Tanggal</th><th>Pelanggan</th><th>Bayar</th><th>Total</th></tr></thead><tbody id="reportRows"></tbody></table></div></div></div>
+        <div style="overflow:auto"><table class="table"><thead><tr><th>Pesanan</th><th>Total</th><th>Bayar</th><th>Status</th></tr></thead><tbody id="orderTable"></tbody></table></div><div id="tab-promos" class="tab-panel" style="display:none"><div class="panel"><h3>🎟️ Promo & Voucher</h3><div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0"><input id="promoAdminCode" placeholder="Kode, contoh: HEMAT10" style="flex:1"><select id="promoAdminType"><option value="percent">Persen (%)</option><option value="fixed">Potongan (Rp)</option></select><input id="promoAdminValue" type="number" min="0" placeholder="Nilai" style="width:110px"><button class="cta pink" onclick="savePromo()">Simpan Promo</button></div><div id="promoAdminRows"></div></div></div><div id="tab-customers" class="tab-panel" style="display:none"><div class="panel"><h3>👥 Pelanggan</h3><div style="overflow:auto"><table class="table"><thead><tr><th>Nama</th><th>WhatsApp</th><th>Alamat</th><th>Transaksi</th><th>Total Belanja</th></tr></thead><tbody id="customerRows"></tbody></table></div></div></div><div id="tab-reports" class="tab-panel" style="display:none"><div class="panel"><h3>📊 Laporan Penjualan</h3><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:end;margin:12px 0"><label>Dari<br><input id="reportStart" type="date"></label><label>Sampai<br><input id="reportEnd" type="date"></label><button class="cta pink" onclick="loadReport()">Tampilkan</button><button class="cta" onclick="exportReport()">Export CSV</button></div><div id="reportSummary" class="stats-grid"></div><div style="overflow:auto"><table class="table"><thead><tr><th>ID</th><th>Tanggal</th><th>Pelanggan</th><th>Bayar</th><th>Total</th></tr></thead><tbody id="reportRows"></tbody></table></div></div></div>
       </div>
     </div>
   </div>
@@ -387,6 +388,7 @@ function checkout(){
     return p?'<div class="receipt-row"><span>'+escapeHtml(p.name)+' × '+Number(x.qty)+'</span><b>'+money(Number(p.price)*Number(x.qty))+'</b></div>':"";
   }).join("");
   $("checkoutTotal").textContent=money(total);
+  $("promoCode").value="";$("promoInfo").textContent="";
   $("paid").value="";
   $("change").textContent=money(0);
   document.querySelectorAll(".pay-btn").forEach(b=>b.classList.toggle("active",b.dataset.pay==="Tunai"));
@@ -406,11 +408,24 @@ function updateChange(){
   const paid=Number($("paid").value)||0;
   $("change").textContent=money(Math.max(0,paid-total));
 }
+async function checkPromo(){
+  const code=String($("promoCode").value||"").trim().toUpperCase(); if(!code)return;
+  const subtotal=cart.reduce((sum,x)=>{const p=products.find(p=>Number(p.id)===Number(x.id));return sum+(p?Number(p.price)*Number(x.qty):0)},0);
+  const r=await api("check-promo",{code,subtotal}); if(!r.ok){$("promoInfo").textContent=r.message||"Promo tidak valid.";return}
+  $("promoInfo").textContent="Promo aktif: hemat "+money(r.discount)+" • Total "+money(subtotal-r.discount);
+}
 async function payNow(){
-  const total=cart.reduce((sum,x)=>{const p=products.find(p=>Number(p.id)===Number(x.id));return sum+(p?Number(p.price)*Number(x.qty):0)},0);
+  const subtotal=cart.reduce((sum,x)=>{const p=products.find(p=>Number(p.id)===Number(x.id));return sum+(p?Number(p.price)*Number(x.qty):0)},0);
+  const promo_code=String($("promoCode").value||"").trim().toUpperCase();
+  let discount=0,total=subtotal;
+  if(promo_code){
+    const pr=await api("check-promo",{code:promo_code,subtotal});
+    if(!pr.ok)return alert(pr.message||"Promo tidak valid.");
+    discount=Number(pr.discount||0);total=Math.max(0,subtotal-discount);
+  }
   const paid=selectedPayment==="Tunai"?(Number($("paid").value)||0):total;
   if(selectedPayment==="Tunai" && paid<total)return alert("Uang yang diterima masih kurang.");
-  const r=await api("save-order",{items:cart,customer:{name:"",phone:"",address:""},payment_method:selectedPayment,paid});
+  const r=await api("save-order",{items:cart,customer:{name:"",phone:"",address:""},payment_method:selectedPayment,paid,promo_code});
   if(!r.ok)return alert(r.message||"Transaksi gagal disimpan.");
   const order=r.order;
   lastReceipt={...order,created_at:new Date().toISOString()};
@@ -422,6 +437,7 @@ function renderReceipt(o){
   const rows=(o.items||[]).map(x=>'<div class="receipt-row"><span>'+escapeHtml(x.name)+' × '+Number(x.qty)+'</span><span>'+money(Number(x.subtotal)||0)+'</span></div>').join("");
   return '<div class="receipt-head"><h2>🍨 WARUNG NZAL</h2><div>Ice Cream Gabin</div><small>'+escapeHtml(o.id)+'<br>'+new Date(o.created_at).toLocaleString("id-ID")+'</small></div>'+
     '<div style="padding:10px 0">'+rows+'</div>'+
+    (Number(o.discount||0)>0?'<div class="receipt-row"><span>Diskon '+escapeHtml(o.promo_code||"")+'</span><b>-'+money(o.discount)+'</b></div>':"")+
     '<div class="receipt-total receipt-row"><span>TOTAL</span><span>'+money(o.total)+'</span></div>'+
     '<div class="receipt-row"><span>Pembayaran</span><b>'+escapeHtml(o.payment_method||"Tunai")+'</b></div>'+
     (o.payment_method==="Tunai"?'<div class="receipt-row"><span>Dibayar</span><span>'+money(o.paid)+'</span></div><div class="receipt-row"><span>Kembalian</span><b>'+money(o.change_amount||0)+'</b></div>':"")+
@@ -449,7 +465,7 @@ async function login(){
   token=r.token;$("login").style.display="none";$("admin").style.display="block";await refreshAdmin();
 }
 async function refreshAdmin(){
-  const r=await api("admin-data"); if(!r.ok){alert(r.message||"Gagal mengambil data admin.");return} renderCustomers(r.customers||[]);
+  const r=await api("admin-data"); if(!r.ok){alert(r.message||"Gagal mengambil data admin.");return} renderCustomers(r.customers||[]); renderPromoAdmin(r.promotions||[]);
   adminData=r;
   $("sProd").textContent=r.products.length;
   const stats=r.stats||{};
@@ -466,6 +482,8 @@ async function refreshAdmin(){
 }
 async function loadReport(){const start=$("reportStart").value,end=$("reportEnd").value;let url="/api?action=admin-data";if(start)url+="&start="+encodeURIComponent(start);if(end)url+="&end="+encodeURIComponent(end);const r=await fetch(url,{headers:{"x-admin-password":adminPassword}}),d=await r.json();if(!d.ok)return alert(d.message||"Gagal memuat laporan");const x=d.report.summary;$("reportSummary").innerHTML='<div class="stat">Transaksi<b>'+x.orders+'</b></div><div class="stat">Omzet<b>'+money(x.sales)+'</b></div><div class="stat">Tunai<b>'+money(x.cash)+'</b></div><div class="stat">Non Tunai<b>'+money(x.qris+x.transfer)+'</b></div>';$("reportRows").innerHTML=d.report.orders.map(o=>'<tr><td>'+escapeHtml(o.id)+'</td><td>'+new Date(o.created_at).toLocaleString("id-ID")+'</td><td>'+escapeHtml(o.customer_name||"-")+'</td><td>'+escapeHtml(o.payment_method||"-")+'</td><td>'+money(Number(o.total||0))+'</td></tr>').join("");}
 function exportReport(){const rows=[["ID","Tanggal","Pelanggan","Pembayaran","Total"]];document.querySelectorAll("#reportRows tr").forEach(tr=>rows.push([...tr.children].map(td=>td.innerText)));if(rows.length===1)return alert("Tampilkan laporan dulu.");const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download="laporan-warung-nzal.csv";a.click();}
+function renderPromoAdmin(rows){const el=$("promoAdminRows");if(!el)return;el.innerHTML=(rows||[]).map(p=>'<div style="padding:9px;border-bottom:1px solid #eee"><b>'+escapeHtml(p.code)+'</b> — '+(p.type==="fixed"?money(p.value):Number(p.value)+"%")+' — '+(Number(p.active)?'Aktif':'Nonaktif')+'</div>').join("")}
+async function savePromo(){const code=$("promoAdminCode").value.trim(),type=$("promoAdminType").value,value=Number($("promoAdminValue").value)||0;const r=await api("save-promo",{promo:{code,type,value,active:true}});if(!r.ok)return alert(r.message||"Gagal menyimpan promo.");$("promoAdminCode").value="";$("promoAdminValue").value="";await refreshAdmin();alert("Promo tersimpan.");}
 function renderCustomers(rows){const el=$("customerRows");if(!el)return;el.innerHTML=(rows||[]).map(c=>'<tr><td>'+escapeHtml(c.name||"-")+'</td><td>'+escapeHtml(c.phone||"-")+'</td><td>'+escapeHtml(c.address||"-")+'</td><td>'+Number(c.orders||0)+'</td><td>'+money(Number(c.total_spent||0))+'</td></tr>').join("");}
 function showTab(id,btn){
   document.querySelectorAll(".panel").forEach(x=>x.classList.remove("show"));
