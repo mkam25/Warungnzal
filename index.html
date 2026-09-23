@@ -175,14 +175,21 @@ async function api(action,data={}){
 }
 
 async function load(){
+  // Tampilkan menu bawaan terlebih dahulu agar menu tidak pernah kosong
+  // meskipun API/Netlify Function sedang lambat atau bermasalah.
+  products=[...DEFAULT_PRODUCTS];
+  render();
+
   try{
     const r=await fetch("/.netlify/functions/api");
     const j=await r.json();
-    products=Array.isArray(j.products)&&j.products.length ? j.products : DEFAULT_PRODUCTS;
+    if(Array.isArray(j.products)&&j.products.length){
+      products=j.products;
+      render();
+    }
   }catch(e){
-    products=DEFAULT_PRODUCTS;
+    console.warn("API menu tidak tersedia, memakai menu bawaan.",e);
   }
-  render();
 }
 
 function goToMenu(){
