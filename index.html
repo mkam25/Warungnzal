@@ -117,8 +117,7 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
   .title{margin:24px 0 14px}
   .title h1{font-size:29px;line-height:1.05}
   .title p{font-size:12px}
-  .actions{padding:10px;display:flex;flex-wrap:wrap;justify-content:center}
-  .cta{padding:11px 15px;font-size:13px}
+  .actions{padding:10px;display:flex;flex-wrap:wrap;justify-content:center}  .cta{padding:11px 15px;font-size:13px}
   .hero{border-radius:20px}
   .box{padding:12px;border-radius:18px}
   .modal{padding:8px}
@@ -237,8 +236,7 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
       <button class="full pink" onclick="printReceipt()">🖨️ Cetak</button>
       <button class="full green" onclick="sendReceiptWhatsApp()">💬 WhatsApp</button>
     </div>
-  </div>
-</div>
+  </div></div>
 
 <div class="modal" id="adminModal">
   <div class="box">
@@ -294,18 +292,18 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
         <div style="overflow:auto"><table class="table"><thead><tr><th>Pesanan</th><th>Pemesan</th><th>Total</th><th>Bayar</th><th>Status</th><th>WhatsApp</th></tr></thead><tbody id="orderTable"></tbody></table></div>
       </div>
 
-      <div class="panel" id="tab-promos">
+      <div class="panel" id="promos">
         <h3>🎟️ Promo & Voucher</h3>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0"><input id="promoAdminCode" placeholder="Kode, contoh: HEMAT10" style="flex:1"><select id="promoAdminType"><option value="percent">Persen (%)</option><option value="fixed">Potongan (Rp)</option></select><input id="promoAdminValue" type="number" min="0" placeholder="Nilai" style="width:110px"><button class="cta pink" onclick="savePromo()">Simpan Promo</button></div>
         <div id="promoAdminRows"></div>
       </div>
 
-      <div class="panel" id="tab-customers">
+      <div class="panel" id="customers">
         <h3>👥 Pelanggan</h3>
         <div style="overflow:auto"><table class="table"><thead><tr><th>Nama</th><th>WhatsApp</th><th>Alamat</th><th>Transaksi</th><th>Total Belanja</th></tr></thead><tbody id="customerRows"></tbody></table></div>
       </div>
 
-      <div class="panel" id="tab-reports">
+      <div class="panel" id="reports">
         <h3>📊 Laporan Penjualan</h3>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:end;margin:12px 0"><label>Dari<br><input id="reportStart" type="date"></label><label>Sampai<br><input id="reportEnd" type="date"></label><button class="cta pink" onclick="loadReport()">Tampilkan</button><button class="cta" onclick="exportReport()">Export CSV</button></div>
         <div id="reportSummary" class="stats"></div>
@@ -357,8 +355,7 @@ function renderProducts(){
     const photo=p.image ? '<img src="'+escapeAttr(p.image)+'" alt="'+escapeAttr(p.name)+'" style="width:100%;height:100%;object-fit:cover;object-position:center;border-radius:16px;display:block">' : '<div class="ice" style="--flavor:'+(p.bg||"#f7c6d9")+'"></div>';
     const stock=Math.max(0,Number(p.stock)||0);
     const low=stock>0 && stock<=Math.max(0,Number(p.reorder_level)||5);
-    const badge=stock<=0?'<span class="stock-badge stock-out">Habis</span>':low?'<span class="stock-badge stock-low">Stok menipis • '+stock+'</span>':'<span class="stock-badge stock-ok">Stok '+stock+'</span>';
-    const cat='<span style="display:inline-block;margin:5px auto 0;padding:4px 8px;border-radius:99px;background:#fff0f5;color:var(--p);font-size:10px;font-weight:800">'+escapeHtml(p.category||"Lainnya")+'</span>';
+    const badge=stock<=0?'<span class="stock-badge stock-out">Habis</span>':low?'<span class="stock-badge stock-low">Stok menipis • '+stock+'</span>':'<span class="stock-badge stock-ok">Stok '+stock+'</span>';    const cat='<span style="display:inline-block;margin:5px auto 0;padding:4px 8px;border-radius:99px;background:#fff0f5;color:var(--p);font-size:10px;font-weight:800">'+escapeHtml(p.category||"Lainnya")+'</span>';
     return '<article class="card"><div class="pic" style="--bg:'+(p.bg||"#f7c6d9")+'">'+photo+'</div><h3>'+(p.emoji||"🍦")+' '+escapeHtml(p.name)+'</h3><div class="price">'+money(Number(p.price)||0)+'</div><div class="sub">'+escapeHtml(p.description||"Ice Cream Gabin")+'</div>'+cat+badge+'<button class="add" '+(stock<=0?'disabled':'')+' onclick="add('+Number(p.id)+')">'+(stock<=0?'Habis':' + Tambah')+'</button></article>';
   }).join("");
 }
@@ -477,8 +474,7 @@ async function payNow(){
     if(!pr.ok)return alert(pr.message||"Promo tidak valid.");
     discount=Number(pr.discount||0);total=Math.max(0,subtotal-discount);
   }
-  const paid=selectedPayment==="Tunai"?(Number($("paid").value)||0):total;
-  const customer={name:$("customerName").value.trim(),phone:$("customerPhone").value.trim(),address:$("customerAddress").value.trim()};
+  const paid=selectedPayment==="Tunai"?(Number($("paid").value)||0):total;  const customer={name:$("customerName").value.trim(),phone:$("customerPhone").value.trim(),address:$("customerAddress").value.trim()};
   if(!customer.name)return alert("Nama pemesan wajib diisi.");
   if(!customer.phone)return alert("Nomor WhatsApp wajib diisi.");
   if(!/^\+?[0-9\s-]{8,16}$/.test(customer.phone))return alert("Nomor WhatsApp tidak valid.");
@@ -598,95 +594,3 @@ async function notifyNewOrder(order){
     if(reg) await reg.showNotification("🔔 Pesanan Baru - Warung Nzal",{body:"Pesanan "+order.id+" dari "+(order.customer_name||"Pelanggan")+" • "+money(order.total||0),tag:"order-"+order.id});
   }catch(e){}
 }
-function startOrderPolling(){
-  if(orderPollTimer)return;
-  orderPollTimer=setInterval(async()=>{
-    if(!token)return;
-    const r=await api("admin-data");if(!r.ok||!r.orders)return;
-    const current=new Set(r.orders.map(o=>String(o.id)));
-    const fresh=r.orders.filter(o=>String(o.status||"Baru")==="Baru"&&!lastKnownOrderIds.has(String(o.id)));
-    if(lastKnownOrderIds.size) fresh.forEach(notifyNewOrder);
-    lastKnownOrderIds=current;
-    adminData=r;
-    renderAdminOrders(r.orders);
-  },15000);
-}
-async function refreshAdmin(){
-  const r=await api("admin-data"); if(!r.ok){alert(r.message||"Gagal mengambil data admin.");return} renderCustomers(r.customers||[]); renderPromoAdmin(r.promotions||[]);
-  adminData=r;
-  if(lastKnownOrderIds.size===0) lastKnownOrderIds=new Set((r.orders||[]).map(o=>String(o.id)));
-  if(Notification?.permission==="granted"){notificationReady=true;$("notifyStatus").textContent="🔔 Notifikasi aktif";startOrderPolling();}
-  $("sProd").textContent=r.products.length;
-  const stats=r.stats||{};
-  $("sOrder").textContent=stats.todayOrders||0;
-  $("sSales").textContent=money(stats.salesToday||0);
-  $("sWeekSales").textContent=money(stats.salesWeek||0);
-  const sc=stats.statusCounts||{};
-  $("sBaru").textContent=sc.Baru||0;
-  $("sDiproses").textContent=sc.Diproses||0;
-  $("sSiap").textContent=sc.Siap||0;
-  $("sBatal").textContent=sc.Batal||0;
-  const tops=Array.isArray(stats.topProducts)?stats.topProducts:[];
-  $("topProducts").innerHTML=tops.length?tops.map((x,i)=>'<div class="top-product-row"><span>'+(i+1)+'. '+escapeHtml(x.name)+'</span><b>'+Number(x.qty||0)+' terjual</b></div>').join(''):'<div class="empty">Belum ada penjualan.</div>';
-  $("menuTable").innerHTML=r.products.map(p=>{
-    const thumb=p.image ? '<img class="thumb" src="'+escapeAttr(p.image)+'" alt="'+escapeAttr(p.name)+'">' : '<div class="thumb" style="display:grid;place-items:center;font-size:25px">'+(p.emoji||"🍦")+'</div>';
-    const catOptions=["Ice Cream","Coklat","Buah","Matcha","Special","Lainnya"].map(c=>'<option value="'+escapeAttr(c)+'" '+(String(p.category||"Lainnya")===c?"selected":"")+'>'+escapeHtml(c)+'</option>').join("");
-    return '<tr><td>'+thumb+'</td><td><input id="mn'+p.id+'" value="'+escapeAttr(p.name)+'"></td><td><input id="mp'+p.id+'" type="number" value="'+Number(p.price||0)+'" style="width:95px"></td><td><input id="me'+p.id+'" value="'+escapeAttr(p.emoji||"🍦")+'" style="width:70px"></td><td><input id="mb'+p.id+'" type="color" value="'+(p.bg||"#f7c6d9")+'"></td><td><input id="ms'+p.id+'" type="number" min="0" value="'+Number(p.stock||0)+'" style="width:75px"></td><td><input id="mr'+p.id+'" type="number" min="0" value="'+Number(p.reorder_level||5)+'" style="width:65px"></td><td><select id="mcg'+p.id+'">'+catOptions+'</select></td><td><input id="mf'+p.id+'" type="file" accept="image/*" class="photo-input"><br><label><input id="mc'+p.id+'" type="checkbox"> Hapus</label></td><td><button class="smallbtn pink" onclick="editProduct('+p.id+')">Simpan</button> <button class="danger" onclick="deleteProduct('+p.id+')">Hapus</button></td></tr>';
-  }).join("");
-  $("orderFilterBox").innerHTML='<button class="active" onclick="setOrderFilter(\'Semua\',this)">Semua ('+r.orders.length+')</button><button onclick="setOrderFilter(\'Baru\',this)">Baru ('+r.orders.filter(o=>o.status==="Baru").length+')</button><button onclick="setOrderFilter(\'Diproses\',this)">Diproses ('+r.orders.filter(o=>o.status==="Diproses").length+')</button><button onclick="setOrderFilter(\'Siap\',this)">Siap ('+r.orders.filter(o=>o.status==="Siap").length+')</button><button onclick="setOrderFilter(\'Selesai\',this)">Selesai ('+r.orders.filter(o=>o.status==="Selesai").length+')</button>';renderAdminOrders(r.orders);
-}
-async function loadReport(){const start=$("reportStart").value,end=$("reportEnd").value;const r=await api("admin-data",{start,end});if(!r.ok)return alert(r.message||"Gagal memuat laporan");const x=r.report.summary;$("reportSummary").innerHTML='<div class="stat">Transaksi<b>'+x.orders+'</b></div><div class="stat">Omzet<b>'+money(x.sales)+'</b></div><div class="stat">Tunai<b>'+money(x.cash)+'</b></div><div class="stat">Non Tunai<b>'+money(x.qris+x.transfer)+'</b></div>';$("reportRows").innerHTML=r.report.orders.map(o=>'<tr><td>'+escapeHtml(o.id)+'</td><td>'+new Date(o.created_at).toLocaleString("id-ID")+'</td><td>'+escapeHtml(o.customer_name||"-")+'</td><td>'+escapeHtml(o.payment_method||"-")+'</td><td>'+money(Number(o.total||0))+'</td></tr>').join("");}
-function exportReport(){const rows=[["ID","Tanggal","Pelanggan","Pembayaran","Total"]];document.querySelectorAll("#reportRows tr").forEach(tr=>rows.push([...tr.children].map(td=>td.innerText)));if(rows.length===1)return alert("Tampilkan laporan dulu.");const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download="laporan-warung-nzal.csv";a.click();}
-function renderPromoAdmin(rows){const el=$("promoAdminRows");if(!el)return;el.innerHTML=(rows||[]).map(p=>'<div style="padding:9px;border-bottom:1px solid #eee"><b>'+escapeHtml(p.code)+'</b> — '+(p.type==="fixed"?money(p.value):Number(p.value)+"%")+' — '+(Number(p.active)?'Aktif':'Nonaktif')+'</div>').join("")}
-async function savePromo(){const code=$("promoAdminCode").value.trim(),type=$("promoAdminType").value,value=Number($("promoAdminValue").value)||0;const r=await api("save-promo",{promo:{code,type,value,active:true}});if(!r.ok)return alert(r.message||"Gagal menyimpan promo.");$("promoAdminCode").value="";$("promoAdminValue").value="";await refreshAdmin();alert("Promo tersimpan.");}
-function renderCustomers(rows){const el=$("customerRows");if(!el)return;el.innerHTML=(rows||[]).map(c=>'<tr><td>'+escapeHtml(c.name||"-")+'</td><td>'+escapeHtml(c.phone||"-")+'</td><td>'+escapeHtml(c.address||"-")+'</td><td>'+Number(c.orders||0)+'</td><td>'+money(Number(c.total_spent||0))+'</td></tr>').join("");}
-function showTab(id,btn){
-  document.querySelectorAll(".panel").forEach(x=>x.classList.remove("show"));
-  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
-  const target=$(id);
-  if(target) target.classList.add("show");
-  if(btn) btn.classList.add("active");
-}
-async function addProduct(){
-  try{
-    const image=await compressImage($("photo").files[0]);
-    const p={name:$("n").value.trim(),price:Number($("p").value)||0,emoji:$("e").value.trim()||"🍦",bg:$("bg").value,category:$("categoryNew").value||"Lainnya",image,stock:Math.max(0,Math.round(Number($("stockNew").value)||0)),reorder_level:Math.max(0,Math.round(Number($("reorderNew").value)||5))};
-    if(!p.name)return alert("Nama produk wajib diisi.");
-    const r=await api("add-product",{product:p});
-    if(!r.ok)return alert(r.message||"Gagal menambah produk.");
-    $("n").value="";$("e").value="";$("photo").value="";$("categoryNew").value="Ice Cream";$("stockNew").value="20";$("reorderNew").value="5";
-    await load();await refreshAdmin();
-  }catch(e){alert(e.message||"Foto tidak bisa diproses.")}
-}
-async function editProduct(id){
-  try{
-    const file=$("mf"+id).files[0];
-    let image;
-    if($("mc"+id).checked) image="";
-    else if(file) image=await compressImage(file);
-    const p={id,name:$("mn"+id).value.trim(),price:Number($("mp"+id).value)||0,emoji:$("me"+id).value.trim()||"🍦",bg:$("mb"+id).value,category:$("mcg"+id).value||"Lainnya",stock:Math.max(0,Math.round(Number($("ms"+id).value)||0)),reorder_level:Math.max(0,Math.round(Number($("mr"+id).value)||5))};
-    if(image!==undefined)p.image=image;
-    if(!p.name)return alert("Nama produk wajib diisi.");
-    const r=await api("update-product",{product:p});
-    if(!r.ok)return alert(r.message||"Gagal menyimpan produk.");
-    await load();await refreshAdmin();
-    alert("Produk berhasil diperbarui.");
-  }catch(e){alert(e.message||"Foto tidak bisa diproses.")}
-}
-async function deleteProduct(id){
-  if(!confirm("Hapus produk ini?"))return;
-  const r=await api("delete-product",{id});if(!r.ok)return alert(r.message||"Gagal menghapus produk.");
-  await load();await refreshAdmin();
-}
-async function updateStatus(id,status){
-  if(status==="Batal" && !confirm("Batalkan pesanan ini? Stok akan dikembalikan ke menu."))return await refreshAdmin();
-  const r=await api("update-status",{id,status});if(!r.ok)alert(r.message||"Gagal memperbarui status.");else await refreshAdmin();
-}
-const adminEntry=$("adminEntry");if(adminEntry)adminEntry.style.display="none";
-load();
-if(location.pathname==="/admin"||location.pathname==="/admin/"){
-  setTimeout(()=>openAdmin(),0);
-}
-</script>
-</body>
-</html>
