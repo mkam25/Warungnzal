@@ -37,6 +37,7 @@ async function init(db) {
   if (!names.has("stock")) migrations.push(db.prepare("ALTER TABLE products ADD COLUMN stock INTEGER NOT NULL DEFAULT 20"));
   if (!names.has("reorder_level")) migrations.push(db.prepare("ALTER TABLE products ADD COLUMN reorder_level INTEGER NOT NULL DEFAULT 5"));
   if (!names.has("category")) migrations.push(db.prepare("ALTER TABLE products ADD COLUMN category TEXT NOT NULL DEFAULT 'Lainnya'"));
+  await db.prepare("CREATE TABLE IF NOT EXISTS promotions (code TEXT PRIMARY KEY, type TEXT NOT NULL DEFAULT 'percent', value INTEGER NOT NULL DEFAULT 0, active INTEGER NOT NULL DEFAULT 1, created_at TEXT NOT NULL)").run();
   await db.prepare("CREATE TABLE IF NOT EXISTS customers (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, phone TEXT DEFAULT '', address TEXT DEFAULT '', created_at TEXT NOT NULL)").run();
   await db.prepare("CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone)").run();
   if (migrations.length) await db.batch(migrations);
