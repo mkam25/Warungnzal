@@ -328,6 +328,8 @@ async function fetchTrackedOrder(showError=true,openModal=true){
   const r=await fetch("/api/order-status?id="+encodeURIComponent(trackedOrderId)+"&phone="+encodeURIComponent(trackedOrderPhone)+"&ts="+Date.now(),{cache:"no-store"}).then(x=>x.json()).catch(()=>({ok:false,message:"Server tidak dapat dihubungi."}));
   if(!r.ok){if(showError)alert(r.message||"Pesanan tidak ditemukan.");return false;}
   const o=r.order||{};
+  lastReceipt={...(lastReceipt||{}),...o};
+  if($("receiptModal")?.classList.contains("on")) $("receiptContent").innerHTML=renderReceipt(lastReceipt);
   const items=(o.items||[]).map(x=>'<div class="receipt-row"><span>'+escapeHtml(x.name||"Produk")+' × '+Number(x.qty||0)+'</span><b>'+money(x.subtotal||0)+'</b></div>').join("");
   $("orderDetailContent").innerHTML='<div class="receipt-head"><h2>📦 '+escapeHtml(o.id)+'</h2><small>'+new Date(o.created_at).toLocaleString("id-ID")+'</small></div><div style="margin:14px 0;padding:10px 12px;border-radius:12px;background:#fff5fa;text-align:center"><div style="font-size:13px;color:#777">Status Pesanan</div><div style="font-size:22px;color:#ff3f86;font-weight:800">'+escapeHtml(statusLabel(o.status))+'</div></div><div style="margin:10px 0">'+statusSteps(o.status)+'</div><div style="border-top:1px solid #eee;padding-top:10px">'+items+'</div><div class="receipt-total receipt-row"><span>TOTAL</span><b>'+money(o.total||0)+'</b></div><div class="receipt-row"><span>Pembayaran</span><b>'+escapeHtml(o.payment_method||"Tunai")+'</b></div>'+(o.payment_method!=="Tunai"&&o.status==="Menunggu Pembayaran"?'<div style="margin-top:10px;padding:10px;border-radius:10px;background:#fff5d8;color:#8a6200;text-align:center;font-weight:700">⏳ Pembayaran sedang menunggu konfirmasi admin.</div>':"")+'<div style="margin-top:12px;text-align:center;font-size:12px;color:#777">Status diperbarui otomatis.</div>';
   if(openModal) $("orderDetailModal").classList.add("on");
@@ -585,7 +587,8 @@ function renderReceipt(o){
     '<div class="receipt-row"><span>Pemesan</span><b>'+escapeHtml(o.customer_name||"")+'</b></div>'+
     '<div class="receipt-row"><span>WhatsApp</span><span>'+escapeHtml(o.customer_phone||"")+'</span></div>'+
     '<div class="receipt-row"><span>Pembayaran</span><b>'+escapeHtml(o.payment_method||"Tunai")+'</b></div>'+
-    (o.payment_method==="Tunai"?'<div class="receipt-row"><span>Dibayar</span><span>'+money(o.paid)+'</span></div><div class="receipt-row"><span>Kembalian</span><b>'+money(o.change_amount||0)+'</b></div>':'<div style="margin-top:10px;padding:10px;border-radius:10px;background:#fff5d8;color:#8a6200;text-align:center;font-weight:700">⏳ Menunggu pembayaran dikonfirmasi.</div>')+
+    '<div class="receipt-row"><span>Status</span><b>'+escapeHtml(statusLabel(o.status||"Baru"))+'</b></div>'+
+    (o.payment_method==="Tunai"?'<div class="receipt-row"><span>Dibayar</span><span>'+money(o.paid)+'</span></div><div class="receipt-row"><span>Kembalian</span><b>'+money(o.change_amount||0)+'</b></div>':(o.status==="Menunggu Pembayaran"?'<div style="margin-top:10px;padding:10px;border-radius:10px;background:#fff5d8;color:#8a6200;text-align:center;font-weight:700">⏳ Menunggu pembayaran dikonfirmasi.</div>':'<div style="margin-top:10px;padding:10px;border-radius:10px;background:#e8fff0;color:#13733a;text-align:center;font-weight:700">✅ Pembayaran sudah dikonfirmasi.</div>'))+
     '<p style="text-align:center;margin:18px 0 4px">Terima kasih ❤️</p>';
 }
 function closeReceipt(){$("receiptModal").classList.remove("on")}
