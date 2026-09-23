@@ -412,7 +412,7 @@ async function checkPromo(){
   const code=String($("promoCode").value||"").trim().toUpperCase(); if(!code)return;
   const subtotal=cart.reduce((sum,x)=>{const p=products.find(p=>Number(p.id)===Number(x.id));return sum+(p?Number(p.price)*Number(x.qty):0)},0);
   const r=await api("check-promo",{code,subtotal}); if(!r.ok){$("promoInfo").textContent=r.message||"Promo tidak valid.";return}
-  $("promoInfo").textContent="Promo aktif: hemat "+money(r.discount)+" • Total "+money(subtotal-r.discount);
+  $("promoInfo").textContent="Promo aktif: hemat "+money(r.discount)+" • Total "+money(subtotal-r.discount);$("checkoutTotal").textContent=money(subtotal-r.discount);
 }
 async function payNow(){
   const subtotal=cart.reduce((sum,x)=>{const p=products.find(p=>Number(p.id)===Number(x.id));return sum+(p?Number(p.price)*Number(x.qty):0)},0);
