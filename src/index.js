@@ -122,6 +122,14 @@ export default {
         return json({ok:true,products:(rows.results||[]).map(p=>({id:p.id,name:p.name,hasImage:!!p.image,imageLength:String(p.image||"").length,prefix:String(p.image||"").slice(0,30)}))});
       }
 
+      if (request.method === "GET" && url.pathname === "/api/payment-settings") {
+        const rows=await env.DB.prepare("SELECT key,value FROM app_settings WHERE key IN ('qris_active','transfer_active','bank_name','account_number','account_name','qris_image')").all();
+        const s={qris_active:1,transfer_active:1,bank_name:"",account_number:"",account_name:"",qris_image:""};
+        (rows.results||[]).forEach(x=>{if(x.key in s)s[x.key]=x.value});
+        s.qris_active=Number(s.qris_active)?1:0;s.transfer_active=Number(s.transfer_active)?1:0;
+        return json({ok:true,settings:s});
+      }
+
       if (request.method === "GET" && url.pathname === "/api/products") {
         const r = await products(env.DB);
         return json({ok:true,products:r.results});
@@ -205,6 +213,22 @@ export default {
       }
 
       if (!authorized(request,env)) return json({ok:false,message:"Sesi admin tidak valid."},401);
+
+      if (action === "save-payment-settings") {
+        const s=body.settings||{};
+        const image=String(s.qris_image||"");
+        if(image && (!image.startsWith("data:image/") || image.length>1900000)) return json({ok:false,message:"Foto QRIS tidak valid atau terlalu besar."},400);
+        const values={
+          qris_active:Number(s.qris_active)?1:0,
+          transfer_active:Number(s.transfer_active)?1:0,
+          bank_name:String(s.bank_name||"").trim().slice(0,100),
+          account_number:String(s.account_number||"").replace(/[^0-9]/g,"").slice(0,40),
+          account_name:String(s.account_name||"").trim().slice(0,100),
+          qris_image:image
+        };
+        for(const [key,value] of Object.entries(values)) await env.DB.prepare("INSERT OR REPLACE INTO app_settings(key,value) VALUES(?,?)").bind(key,String(value)).run();
+        return json({ok:true,settings:values});
+      }
 
       if (action === "admin-data") {
         let customerRows={results:[]};
