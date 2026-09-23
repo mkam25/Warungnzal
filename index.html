@@ -59,7 +59,8 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
 .row{display:flex;gap:8px;flex-wrap:wrap}.row input,.row select{padding:10px;border:1px solid #ddd;border-radius:10px}
 .tabs{margin:14px 0}.tab{border:0;background:#f7eef1;padding:9px 12px;border-radius:9px;margin-right:5px;font-weight:700}
 .active{background:var(--p)!important;color:#fff}.panel{display:none}.panel.show{display:block}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.stat{padding:14px;border-radius:15px;background:#fff5f8;border:1px solid var(--line)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.stat-click{border:0;text-align:left;font:inherit;cursor:pointer;transition:transform .15s,box-shadow .15s}.stat-click:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.08)}
+.stat{padding:14px;border-radius:15px;background:#fff5f8;border:1px solid var(--line)}
 .stat b{font-size:21px;display:block}
 .dashboard-note{font-size:12px;color:#92756b;margin:8px 0 14px}
 .top-products{margin-top:14px;background:#fff;border:1px solid var(--line);border-radius:15px;padding:14px}
@@ -256,10 +257,10 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
         <div class="stat">Pesanan Hari Ini<b id="sOrder">0</b></div>
         <div class="stat">Omzet Hari Ini<b id="sSales">Rp0</b></div>
         <div class="stat">Omzet 7 Hari<b id="sWeekSales">Rp0</b></div>
-        <div class="stat">🆕 Baru<b id="sBaru">0</b></div>
-        <div class="stat">⚙️ Diproses<b id="sDiproses">0</b></div>
-        <div class="stat">📦 Siap<b id="sSiap">0</b></div>
-        <div class="stat">❌ Batal<b id="sBatal">0</b></div>
+        <button class="stat stat-click" onclick="openOrdersByStatus('Baru')" title="Buka pesanan Baru">🆕 Baru<b id="sBaru">0</b></button>
+        <button class="stat stat-click" onclick="openOrdersByStatus('Diproses')" title="Buka pesanan Diproses">⚙️ Diproses<b id="sDiproses">0</b></button>
+        <button class="stat stat-click" onclick="openOrdersByStatus('Siap')" title="Buka pesanan Siap">📦 Siap<b id="sSiap">0</b></button>
+        <button class="stat stat-click" onclick="openOrdersByStatus('Batal')" title="Buka pesanan Batal">❌ Batal<b id="sBatal">0</b></button>
       </div>
       <div class="dashboard-note">Ringkasan penjualan diperbarui dari transaksi yang tersimpan di D1.</div>
       <div class="top-products"><h3>🔥 Produk Terlaris 7 Hari</h3><div id="topProducts"><div class="empty">Belum ada penjualan.</div></div></div>
@@ -503,6 +504,14 @@ async function login(){
   token=r.token;$("login").style.display="none";$("admin").style.display="block";await refreshAdmin();
 }
 let orderFilter="Semua";
+function openOrdersByStatus(status){
+  showTab("orders",null);
+  setOrderFilter(status,null);
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  const orderTab=[...document.querySelectorAll(".tab")].find(x=>String(x.getAttribute("onclick")||"").includes("showTab('orders'"));
+  if(orderTab)orderTab.classList.add("active");
+  document.getElementById("orders").scrollIntoView({behavior:"smooth",block:"start"});
+}
 function setOrderFilter(status,btn){orderFilter=status;document.querySelectorAll("#orderFilterBox button").forEach(x=>x.classList.remove("active"));if(btn)btn.classList.add("active");renderAdminOrders((adminData&&adminData.orders)||[]);}
 function renderAdminOrders(orders){
  const filtered=orderFilter==="Semua"?orders:orders.filter(o=>String(o.status||"Baru")===orderFilter);
