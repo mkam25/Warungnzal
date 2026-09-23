@@ -16,7 +16,7 @@ async function init(db) {
   await db.batch([
     db.prepare(`CREATE TABLE IF NOT EXISTS products (
       id INTEGER PRIMARY KEY, name TEXT NOT NULL, price INTEGER NOT NULL,
-      emoji TEXT, bg TEXT, description TEXT DEFAULT '', image TEXT DEFAULT '', stock INTEGER NOT NULL DEFAULT 20, reorder_level INTEGER NOT NULL DEFAULT 5
+      emoji TEXT, bg TEXT, description TEXT DEFAULT '', image TEXT DEFAULT '', category TEXT NOT NULL DEFAULT 'Lainnya', stock INTEGER NOT NULL DEFAULT 20, reorder_level INTEGER NOT NULL DEFAULT 5
     )`),
     db.prepare(`CREATE TABLE IF NOT EXISTS orders (
       id TEXT PRIMARY KEY, created_at TEXT NOT NULL, customer_name TEXT DEFAULT '',
@@ -36,6 +36,7 @@ async function init(db) {
   if (!names.has("image")) migrations.push(db.prepare("ALTER TABLE products ADD COLUMN image TEXT DEFAULT ''"));
   if (!names.has("stock")) migrations.push(db.prepare("ALTER TABLE products ADD COLUMN stock INTEGER NOT NULL DEFAULT 20"));
   if (!names.has("reorder_level")) migrations.push(db.prepare("ALTER TABLE products ADD COLUMN reorder_level INTEGER NOT NULL DEFAULT 5"));
+  if (!names.has("category")) migrations.push(db.prepare("ALTER TABLE products ADD COLUMN category TEXT NOT NULL DEFAULT 'Lainnya'"));
   await db.prepare("CREATE TABLE IF NOT EXISTS customers (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, phone TEXT DEFAULT '', address TEXT DEFAULT '', created_at TEXT NOT NULL)").run();
   await db.prepare("CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone)").run();
   if (migrations.length) await db.batch(migrations);
@@ -56,15 +57,15 @@ async function init(db) {
     const row = await db.prepare("SELECT COUNT(*) AS n FROM products").first();
     if (!row || Number(row.n) === 0) {
       await db.batch(DEFAULT_PRODUCTS.map(p => db.prepare(
-        "INSERT INTO products (id,name,price,emoji,bg,description,image,stock,reorder_level) VALUES (?,?,?,?,?,?,?,?,?)"
-      ).bind(p.id,p.name,p.price,p.emoji,p.bg,"Ice Cream Gabin","",20,5)));
+        "INSERT INTO products (id,name,price,emoji,bg,description,image,category,stock,reorder_level) VALUES (?,?,?,?,?,?,?,?,?,?)"
+      ).bind(p.id,p.name,p.price,p.emoji,p.bg,"Ice Cream Gabin","",p.id===1?"Coklat":p.id===4||p.id===7?"Buah":p.id===6?"Matcha":"Special",20,5)));
     }
     await db.prepare("INSERT OR REPLACE INTO app_settings (key,value) VALUES ('products_seeded','1')").run();
   }
 }
 
 async function products(db) {
-  return await db.prepare("SELECT id,name,price,emoji,bg,description,image,stock,reorder_level FROM products ORDER BY id").all();
+  return await db.prepare("SELECT id,name,price,emoji,bg,description,image,category,stock,reorder_level FROM products ORDER BY id").all();
 }
 
 function authorized(request, env) {
@@ -213,7 +214,7 @@ export default {
         }
         const max = await env.DB.prepare("SELECT COALESCE(MAX(id),0) AS m FROM products").first();
         const id = Number(max.m)+1;
-        await env.DB.prepare("INSERT INTO products (id,name,price,emoji,bg,description,image,stock,reorder_level) VALUES (?,?,?,?,?,?,?,?,?)")
+        await env.DB.prepare("INSERT INTO products (id,name,price,emoji,bg,description,image,category,stock,reorder_level) VALUES (?,?,?,?,?,?,?,?,?,?)")
           .bind(id,String(p.name||"Produk").trim(),Math.max(0,Number(p.price)||0),String(p.emoji||"🍦"),String(p.bg||"#f7c6d9"),String(p.description||""),image,Math.max(0,Math.round(Number(p.stock)||0)),Math.max(0,Math.round(Number(p.reorder_level)||5))).run();
         return json({ok:true});
       }
@@ -229,8 +230,8 @@ export default {
         const current = await env.DB.prepare("SELECT image FROM products WHERE id=?").bind(id).first();
         if (!current) return json({ok:false,message:"Produk tidak ditemukan."},404);
         const finalImage = image === null ? String(current.image || "") : image;
-        await env.DB.prepare("UPDATE products SET name=?,price=?,emoji=?,bg=?,image=?,stock=?,reorder_level=? WHERE id=?")
-          .bind(String(p.name||"Produk").trim(),Math.max(0,Number(p.price)||0),String(p.emoji||"🍦"),String(p.bg||"#f7c6d9"),finalImage,Math.max(0,Math.round(Number(p.stock)||0)),Math.max(0,Math.round(Number(p.reorder_level)||5)),id).run();
+        await env.DB.prepare("UPDATE products SET name=?,price=?,emoji=?,bg=?,image=?,category=?,stock=?,reorder_level=? WHERE id=?")
+          .bind(String(p.name||"Produk").trim(),Math.max(0,Number(p.price)||0),String(p.emoji||"🍦"),String(p.bg||"#f7c6d9"),finalImage,String(p.category||"Lainnya"),Math.max(0,Math.round(Number(p.stock)||0)),Math.max(0,Math.round(Number(p.reorder_level)||5)),id).run();
         return json({ok:true});
       }
 
