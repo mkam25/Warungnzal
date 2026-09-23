@@ -431,7 +431,7 @@ function changeQty(id,d){
 }
 function openCart(){$("overlay").classList.add("on");$("drawer").classList.add("on")}
 function closeCart(){$("overlay").classList.remove("on");$("drawer").classList.remove("on")}
-function goToMenu(){$("menu").scrollIntoView({behavior:"smooth"})}
+function goToMenu(){const menu=$("menu");if(menu)menu.scrollIntoView({behavior:"smooth",block:"start"})}window.goToMenu=goToMenu;
 let selectedPayment="Tunai";
 let lastReceipt=null;
 
