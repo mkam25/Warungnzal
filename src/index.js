@@ -187,9 +187,10 @@ export default {
         }
         const total=Math.max(0,subtotal-discount);
         const paymentMethod = ["Tunai","QRIS","Transfer"].includes(body.payment_method) ? body.payment_method : "Tunai";
-        const paid = Math.max(0, Math.round(Number(body.paid)||0));
+        const paid = paymentMethod === "Tunai" ? Math.max(0, Math.round(Number(body.paid)||0)) : 0;
         if (paymentMethod === "Tunai" && paid < total) return json({ok:false,message:"Uang dibayar masih kurang."},400);
         const changeAmount = paymentMethod === "Tunai" ? paid - total : 0;
+        const initialStatus = paymentMethod === "Tunai" ? "Baru" : "Menunggu Pembayaran";
         const id = "WN-"+Date.now().toString(36).toUpperCase();
         const customerName=String(body.customer?.name||"").trim();
         const customerPhone=String(body.customer?.phone||"").trim();
@@ -203,13 +204,13 @@ export default {
         }
         const statements = items.map(item => env.DB.prepare("UPDATE products SET stock=stock-? WHERE id=? AND stock>=?").bind(item.qty,item.id,item.qty));
         statements.push(env.DB.prepare("INSERT INTO orders (id,created_at,customer_name,customer_phone,customer_address,items,total,payment_method,paid,change_amount,status,discount,promo_code) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)")
-          .bind(id,new Date().toISOString(),String(body.customer?.name||""),String(body.customer?.phone||""),String(body.customer?.address||""),JSON.stringify(items),total,paymentMethod,paid,changeAmount,"Baru",discount,promoCode));
+          .bind(id,new Date().toISOString(),String(body.customer?.name||""),String(body.customer?.phone||""),String(body.customer?.address||""),JSON.stringify(items),total,paymentMethod,paid,changeAmount,initialStatus,discount,promoCode));
         const results = await env.DB.batch(statements);
         const stockResults = results.slice(0,items.length);
         if(stockResults.some(r => !r.success || Number(r.meta?.changes||0) !== 1)) {
           return json({ok:false,message:"Stok berubah saat checkout. Silakan coba lagi."},409);
         }
-        return json({ok:true,order:{id,subtotal,total,discount,promo_code:promoCode,items,payment_method:paymentMethod,paid,change_amount:changeAmount,status:"Baru"}});
+        return json({ok:true,order:{id,subtotal,total,discount,promo_code:promoCode,items,payment_method:paymentMethod,paid,change_amount:changeAmount,status:initialStatus}});
       }
 
       if (!authorized(request,env)) return json({ok:false,message:"Sesi admin tidak valid."},401);
@@ -256,7 +257,7 @@ export default {
           topMap[key]=(topMap[key]||0)+Number(i.qty||0);
         }));
         const topProducts=Object.entries(topMap).map(([name,qty])=>({name,qty})).sort((a,b)=>b.qty-a.qty).slice(0,5);
-        const statusCounts={Baru:0,Diproses:0,Siap:0,Selesai:0,Batal:0};
+        const statusCounts={"Menunggu Pembayaran":0,Baru:0,Diproses:0,Siap:0,Selesai:0,Batal:0};
         orders.forEach(o=>{const s=String(o.status||"Baru");if(Object.prototype.hasOwnProperty.call(statusCounts,s))statusCounts[s]++;});
         const url = new URL(request.url);
         const reportStart = url.searchParams.get("start") || String(body.start || "").trim() || null;
@@ -333,7 +334,7 @@ export default {
       }
 
       if (action === "update-status") {
-        const allowed = ["Baru","Diproses","Siap","Selesai","Batal"];
+        const allowed = ["Menunggu Pembayaran","Baru","Diproses","Siap","Selesai","Batal"];
         const status = allowed.includes(body.status) ? body.status : "Baru";
         const id=String(body.id||"");
         const order=await env.DB.prepare("SELECT id,status,items FROM orders WHERE id=? LIMIT 1").bind(id).first();
