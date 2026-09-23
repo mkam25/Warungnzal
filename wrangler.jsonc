@@ -9,12 +9,5 @@
     "run_worker_first": [
       "/api/*"
     ]
-  },
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "warungnzal",
-      "database_id": "c9af74d8-6981-44b6-ba36-21dd02835d0f"
-    }
-  ]
+  }
 }
