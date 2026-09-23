@@ -141,10 +141,27 @@ export default {
           topMap[key]=(topMap[key]||0)+Number(i.qty||0);
         }));
         const topProducts=Object.entries(topMap).map(([name,qty])=>({name,qty})).sort((a,b)=>b.qty-a.qty).slice(0,5);
+        const url = new URL(request.url);
+        const reportStart = url.searchParams.get("start");
+        const reportEnd = url.searchParams.get("end");
+        let reportQuery = "SELECT id,created_at,customer_name,total,payment_method,status FROM orders WHERE status <> 'Batal'";
+        const reportParams = [];
+        if (reportStart) { reportQuery += " AND date(created_at) >= ?"; reportParams.push(reportStart); }
+        if (reportEnd) { reportQuery += " AND date(created_at) <= ?"; reportParams.push(reportEnd); }
+        reportQuery += " ORDER BY created_at DESC LIMIT 500";
+        const reportResult = await env.DB.prepare(reportQuery).bind(...reportParams).all();
+        const reportOrders = reportResult.results || [];
+        const reportSummary = {
+          orders: reportOrders.length,
+          sales: reportOrders.reduce((n,x)=>n+Number(x.total||0),0),
+          cash: reportOrders.filter(x=>x.payment_method==="Tunai").reduce((n,x)=>n+Number(x.total||0),0),
+          qris: reportOrders.filter(x=>x.payment_method==="QRIS").reduce((n,x)=>n+Number(x.total||0),0),
+          transfer: reportOrders.filter(x=>x.payment_method==="Transfer").reduce((n,x)=>n+Number(x.total||0),0)
+        };
         return json({ok:true,products:p.results,orders,stats:{
           todayOrders:todayOrders.length,salesToday,weekOrders:weekOrders.length,salesWeek,
           topProducts
-        }});
+        },report:{orders:reportOrders,summary:reportSummary}});
       }
 
       if (action === "add-product") {
