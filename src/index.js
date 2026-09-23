@@ -1,0 +1,122 @@
+const DEFAULT_PRODUCTS = [
+  {id:1,name:"Coklat",price:10000,emoji:"🍫",bg:"#b96f45"},
+  {id:2,name:"Cookies & Cream",price:10000,emoji:"🍪",bg:"#b7b7b7"},
+  {id:3,name:"Vanilla Regal",price:10000,emoji:"🍦",bg:"#e8d6a4"},
+  {id:4,name:"Milky Strawberry",price:10000,emoji:"🍓",bg:"#f27fa6"},
+  {id:5,name:"Tiramisu Brownies",price:10000,emoji:"☕",bg:"#8b624d"},
+  {id:6,name:"Matcha",price:10000,emoji:"🍵",bg:"#73b45b"},
+  {id:7,name:"Avocado",price:10000,emoji:"🥑",bg:"#65a95b"}
+];
+
+const json = (data,status=200) => new Response(JSON.stringify(data), {
+  status, headers: {"Content-Type":"application/json; charset=utf-8"}
+});
+
+async function init(db) {
+  await db.batch([
+    db.prepare(`CREATE TABLE IF NOT EXISTS products (
+      id INTEGER PRIMARY KEY, name TEXT NOT NULL, price INTEGER NOT NULL,
+      emoji TEXT, bg TEXT, description TEXT DEFAULT '', image TEXT DEFAULT ''
+    )`),
+    db.prepare(`CREATE TABLE IF NOT EXISTS orders (
+      id TEXT PRIMARY KEY, created_at TEXT NOT NULL, customer_name TEXT DEFAULT '',
+      customer_phone TEXT DEFAULT '', customer_address TEXT DEFAULT '',
+      items TEXT NOT NULL, total INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'Baru'
+    )`)
+  ]);
+  const row = await db.prepare("SELECT COUNT(*) AS n FROM products").first();
+  if (!row || Number(row.n) === 0) {
+    await db.batch(DEFAULT_PRODUCTS.map(p => db.prepare(
+      "INSERT INTO products (id,name,price,emoji,bg) VALUES (?,?,?,?,?)"
+    ).bind(p.id,p.name,p.price,p.emoji,p.bg)));
+  }
+}
+
+async function products(db) {
+  return await db.prepare("SELECT id,name,price,emoji,bg,description,image FROM products ORDER BY id").all();
+}
+
+function authorized(request, env) {
+  const expected = env.ADMIN_PASSWORD || "nzal123";
+  return request.headers.get("x-admin-password") === expected;
+}
+
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+
+    if (!url.pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
+
+    if (!env.DB) return json({ok:false,message:"D1 belum terpasang sebagai binding DB di Worker."},500);
+
+    try {
+      await init(env.DB);
+
+      if (request.method === "GET" && url.pathname === "/api/products") {
+        const r = await products(env.DB);
+        return json({ok:true,products:r.results});
+      }
+
+      if (request.method !== "POST") return json({ok:false,message:"Method tidak diizinkan."},405);
+      const body = await request.json().catch(()=>({}));
+      const action = body.action;
+
+      if (action === "login") {
+        const pass = String(body.password || "");
+        if (pass !== (env.ADMIN_PASSWORD || "nzal123")) return json({ok:false,message:"Password admin salah."},401);
+        return json({ok:true,token:pass});
+      }
+
+      if (action === "save-order") {
+        const incoming = Array.isArray(body.items) ? body.items : [];
+        const current = (await products(env.DB)).results;
+        const items = incoming.map(x => {
+          const p = current.find(p => Number(p.id) === Number(x.id));
+          if (!p) return null;
+          const qty = Math.max(1,Math.min(999,Math.round(Number(x.qty)||1)));
+          return {id:p.id,name:p.name,price:p.price,qty,subtotal:p.price*qty};
+        }).filter(Boolean);
+        if (!items.length) return json({ok:false,message:"Keranjang kosong."},400);
+        const total = items.reduce((s,x)=>s+x.subtotal,0);
+        const id = "WN-"+Date.now().toString(36).toUpperCase();
+        await env.DB.prepare("INSERT INTO orders (id,created_at,customer_name,customer_phone,customer_address,items,total,status) VALUES (?,?,?,?,?,?,?,?)")
+          .bind(id,new Date().toISOString(),String(body.customer?.name||""),String(body.customer?.phone||""),String(body.customer?.address||""),JSON.stringify(items),total,"Baru").run();
+        return json({ok:true,order:{id,total,items}});
+      }
+
+      if (!authorized(request,env)) return json({ok:false,message:"Sesi admin tidak valid."},401);
+
+      if (action === "admin-data") {
+        const p = await products(env.DB);
+        const o = await env.DB.prepare("SELECT * FROM orders ORDER BY created_at DESC LIMIT 1000").all();
+        return json({ok:true,products:p.results,orders:o.results.map(x=>({...x,items:JSON.parse(x.items||"[]")}))});
+      }
+
+      if (action === "add-product") {
+        const p = body.product || {};
+        const max = await env.DB.prepare("SELECT COALESCE(MAX(id),0) AS m FROM products").first();
+        const id = Number(max.m)+1;
+        await env.DB.prepare("INSERT INTO products (id,name,price,emoji,bg,description,image) VALUES (?,?,?,?,?,?,?)")
+          .bind(id,String(p.name||"Produk").trim(),Math.max(0,Number(p.price)||0),String(p.emoji||"🍦"),String(p.bg||"#f7c6d9"),String(p.description||""),String(p.image||"")).run();
+        return json({ok:true});
+      }
+
+      if (action === "delete-product") {
+        await env.DB.prepare("DELETE FROM products WHERE id=?").bind(Number(body.id)).run();
+        return json({ok:true});
+      }
+
+      if (action === "update-status") {
+        const allowed = ["Baru","Diproses","Selesai"];
+        const status = allowed.includes(body.status) ? body.status : "Baru";
+        await env.DB.prepare("UPDATE orders SET status=? WHERE id=?").bind(status,String(body.id)).run();
+        return json({ok:true});
+      }
+
+      return json({ok:false,message:"Aksi tidak dikenal."},400);
+    } catch (e) {
+      console.error(e);
+      return json({ok:false,message:"Kesalahan server.",detail:String(e?.message||e)},500);
+    }
+  }
+};
