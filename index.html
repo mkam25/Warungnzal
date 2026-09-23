@@ -603,7 +603,10 @@ function renderCustomers(rows){const el=$("customerRows");if(!el)return;el.inner
 function showTab(id,btn){
   document.querySelectorAll(".panel").forEach(x=>x.classList.remove("show"));
   document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
-  $(id).classList.add("show");btn.classList.add("active");
+  const targetMap={promos:"tab-promos",customers:"tab-customers",reports:"tab-reports"};
+  const target=$(targetMap[id]||id);
+  if(target) target.classList.add("show");
+  if(btn) btn.classList.add("active");
 }
 async function addProduct(){
   try{
