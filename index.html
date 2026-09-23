@@ -143,7 +143,10 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
   .hero .actions{padding:18px}
   .hero .cta{min-width:150px}
 }
-.order-filter{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.order-filter button{border:1px solid #f0d7e1;background:#fff;border-radius:99px;padding:8px 12px;font-weight:800;cursor:pointer}.order-filter button.active{background:var(--p);color:#fff}.order-new{box-shadow:0 0 0 2px #ff3f8640}@keyframes pulseOrder{50%{box-shadow:0 0 0 5px #ff3f8615}}</style>
+.order-filter{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.order-filter button{border:1px solid #f0d7e1;background:#fff;border-radius:99px;padding:8px 12px;font-weight:800;cursor:pointer}.order-filter button.active{background:var(--p);color:#fff}.order-new{box-shadow:0 0 0 2px #ff3f8640}@keyframes pulseOrder{50%{box-shadow:0 0 0 5px #ff3f8615}}
+.brand-mark{display:inline-flex;align-items:center;gap:8px}.brand-dot{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:var(--p);color:#fff;font-size:21px;box-shadow:0 6px 14px #ff3f8630}.hero-copy{max-width:760px;margin:0 auto;text-align:center}.hero-copy strong{color:var(--p)}.quick-info{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:900px;margin:4px auto 0}.quick-info div{padding:10px 12px;border-radius:14px;background:#fff7fa;border:1px solid var(--line);font-size:12px;font-weight:700}.payment-note{margin-top:10px;padding:11px 12px;border-radius:12px;background:#fff7fa;border:1px solid var(--line);font-size:12px;line-height:1.55}.payment-note b{color:var(--p)}
+@media(max-width:560px){.quick-info{grid-template-columns:1fr;gap:7px}.brand-dot{width:34px;height:34px;font-size:19px}.hero-copy{padding:0 6px}.payment-note{font-size:11px}}
+</style>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22%23ff5c8a%22/%3E%3Cpath d=%22M16 24h32l-3 27H19l-3-27Z%22 fill=%22white%22/%3E%3Cpath d=%22M21 24c0-8 4-13 11-13s11 5 11 13%22 fill=%22none%22 stroke=%22white%22 stroke-width=%225%22 stroke-linecap=%22round%22/%3E%3C/svg%3E">
 </head>
 <body>
@@ -152,7 +155,7 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
 
 <nav>
   <div class="nav">
-    <div class="logo">🍨 Warung Nzal</div>
+    <div class="logo brand-mark"><span class="brand-dot">🍨</span><span>Warung Nzal</span></div>
     <div>
       <button id="adminEntry" class="pill admin" style="display:none" onclick="openAdmin()">⚙️ Admin</button>
       <button class="pill cart" onclick="openCart()">🛒 <span id="count">0</span></button>
@@ -163,6 +166,8 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
 <main>
 <section class="hero">
   <img src="poster-warung-nzal.jpg" alt="Warung Nzal">
+  <div class="hero-copy"><b>Ice Cream Gabin • Aneka Rasa • Mulai 10K</b><p style="margin:5px 0 0;color:#876c61;font-size:13px">Pesan online, pilih pembayaran, lalu pantau status pesanan sampai selesai.</p></div>
+  <div class="quick-info"><div>🧊 Fresh & dingin</div><div>📦 Order tersimpan otomatis</div><div>💬 Bantuan via WhatsApp</div></div>
   <div class="actions">
     <button class="cta pink" type="button" onclick="goToMenu()">🍦 Lihat Menu</button>
     <a class="cta green" target="_blank" rel="noopener" href="https://wa.me/6281953154549?text=Halo%20Warung%20Nzal%2C%20saya%20mau%20pesan">💬 WhatsApp</a>
