@@ -50,8 +50,7 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
 .change-box{display:flex;justify-content:space-between;padding:12px;border-radius:12px;background:#effaf3;margin-top:10px;font-weight:800}
 .receipt{font-family:Arial,sans-serif;color:#222}
 .receipt-head{text-align:center;border-bottom:1px dashed #bbb;padding-bottom:12px}
-.receipt-row{display:flex;justify-content:space-between;gap:12px;padding:5px 0}
-.receipt-total{border-top:1px dashed #bbb;margin-top:8px;padding-top:10px;font-weight:800;font-size:18px}
+.receipt-row{display:flex;justify-content:space-between;gap:12px;padding:6px 0}.receipt-row span:first-child{color:#6f625e}.receipt-total{border-top:1px dashed #bbb;margin-top:8px;padding-top:10px;font-weight:800;font-size:18px}.receipt-status{display:inline-block;padding:5px 9px;border-radius:99px;background:#fff0f5;color:var(--p);font-size:12px}.receipt-id{display:inline-block;margin-top:5px;padding:4px 8px;border-radius:8px;background:#f7f3f4;font-weight:800}
 .receipt-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
 .row{display:flex;gap:8px;flex-wrap:wrap}.row input,.row select{padding:10px;border:1px solid #ddd;border-radius:10px}
 .tabs{margin:14px 0}.tab{border:0;background:#f7eef1;padding:9px 12px;border-radius:9px;margin-right:5px;font-weight:700}
@@ -232,7 +231,7 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
     <div id="receiptContent" class="receipt"></div>
     <div class="receipt-actions">
       <button class="full pink" onclick="printReceipt()">🖨️ Cetak</button>
-      <button class="full green" onclick="sendReceiptWhatsApp()">💬 WhatsApp</button>
+      <button class="full green" onclick="sendReceiptWhatsApp()"><span class="wa-brand-icon" aria-hidden="true">💬</span> WhatsApp</button>
     </div>
   </div></div>
 
