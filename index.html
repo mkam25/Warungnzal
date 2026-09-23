@@ -315,6 +315,18 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
 </div>
 
 <script>
+async function checkOrderStatus(){
+  const id=String(prompt("Masukkan nomor pesanan (contoh: WN-ABC123)")||"").trim().toUpperCase();
+  if(!id)return;
+  const phone=String(prompt("Masukkan nomor WhatsApp yang dipakai saat checkout")||"").trim();
+  if(!phone)return;
+  const r=await fetch("/api/order-status?id="+encodeURIComponent(id)+"&phone="+encodeURIComponent(phone)).then(x=>x.json()).catch(()=>({ok:false,message:"Server tidak dapat dihubungi."}));
+  if(!r.ok)return alert(r.message||"Pesanan tidak ditemukan.");
+  const o=r.order||{};
+  const items=(o.items||[]).map(x=>x.name+" × "+x.qty+" = "+money(x.subtotal)).join("\n");
+  alert("📦 PESANAN "+o.id+"\n\nStatus: "+(o.status||"Baru")+"\nPemesan: "+(o.customer_name||"-")+"\nTotal: "+money(o.total||0)+"\nPembayaran: "+(o.payment_method||"Tunai")+"\n\n"+items);
+}
+
 const DEFAULT_PRODUCTS = [
   {id:1,name:"Coklat",price:10000,emoji:"🍫",bg:"#b96f45"},
   {id:2,name:"Cookies & Cream",price:10000,emoji:"🍪",bg:"#b7b7b7"},
@@ -572,17 +584,7 @@ function resetAdminView(){
 }
 window.addEventListener("pageshow",async()=>{resetAdminView();if(token){$("login").style.display="none";$("admin").style.display="block";await refreshAdmin()}});
 function logoutAdmin(){token=null;try{localStorage.removeItem("nzal_admin_token");sessionStorage.removeItem("nzal_admin_token")}catch(e){}$("admin").style.display="none";$("login").style.display="block";$("pass").value="";$("adminModal").classList.remove("on");document.querySelectorAll(".panel").forEach(x=>x.classList.remove("show"));const dash=$("dash");if(dash)dash.classList.add("show")}
-async function checkOrderStatus(){
-  const id=String(prompt("Masukkan nomor pesanan (contoh: WN-ABC123)")||"").trim().toUpperCase();
-  if(!id)return;
-  const phone=String(prompt("Masukkan nomor WhatsApp yang dipakai saat checkout")||"").trim();
-  if(!phone)return;
-  const r=await fetch("/api/order-status?id="+encodeURIComponent(id)+"&phone="+encodeURIComponent(phone)).then(x=>x.json()).catch(()=>({ok:false,message:"Server tidak dapat dihubungi."}));
-  if(!r.ok)return alert(r.message||"Pesanan tidak ditemukan.");
-  const o=r.order||{};
-  const items=(o.items||[]).map(x=>x.name+" × "+x.qty+" = "+money(x.subtotal)).join("\n");
-  alert("📦 PESANAN "+o.id+"\n\nStatus: "+(o.status||"Baru")+"\nPemesan: "+(o.customer_name||"-")+"\nTotal: "+money(o.total||0)+"\nPembayaran: "+(o.payment_method||"Tunai")+"\n\n"+items);
-}
+
 function openAdmin(){$("adminModal").classList.add("on");$("pass").focus()}
 function closeAdmin(){$("adminModal").classList.remove("on")}
 async function login(){
