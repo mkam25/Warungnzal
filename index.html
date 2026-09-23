@@ -290,7 +290,25 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
 
       <div class="panel" id="orders">
         <div id="orderFilterBox" class="order-filter"></div>
-        <div style="overflow:auto"><table class="table"><thead><tr><th>Pesanan</th><th>Pemesan</th><th>Total</th><th>Bayar</th><th>Status</th><th>WhatsApp</th></tr></thead><tbody id="orderTable"></tbody></table></div><div id="tab-promos" class="tab-panel" style="display:none"><div class="panel"><h3>🎟️ Promo & Voucher</h3><div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0"><input id="promoAdminCode" placeholder="Kode, contoh: HEMAT10" style="flex:1"><select id="promoAdminType"><option value="percent">Persen (%)</option><option value="fixed">Potongan (Rp)</option></select><input id="promoAdminValue" type="number" min="0" placeholder="Nilai" style="width:110px"><button class="cta pink" onclick="savePromo()">Simpan Promo</button></div><div id="promoAdminRows"></div></div></div><div id="tab-customers" class="tab-panel" style="display:none"><div class="panel"><h3>👥 Pelanggan</h3><div style="overflow:auto"><table class="table"><thead><tr><th>Nama</th><th>WhatsApp</th><th>Alamat</th><th>Transaksi</th><th>Total Belanja</th></tr></thead><tbody id="customerRows"></tbody></table></div></div></div><div id="tab-reports" class="tab-panel" style="display:none"><div class="panel"><h3>📊 Laporan Penjualan</h3><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:end;margin:12px 0"><label>Dari<br><input id="reportStart" type="date"></label><label>Sampai<br><input id="reportEnd" type="date"></label><button class="cta pink" onclick="loadReport()">Tampilkan</button><button class="cta" onclick="exportReport()">Export CSV</button></div><div id="reportSummary" class="stats-grid"></div><div style="overflow:auto"><table class="table"><thead><tr><th>ID</th><th>Tanggal</th><th>Pelanggan</th><th>Bayar</th><th>Total</th></tr></thead><tbody id="reportRows"></tbody></table></div></div></div>
+        <div style="overflow:auto"><table class="table"><thead><tr><th>Pesanan</th><th>Pemesan</th><th>Total</th><th>Bayar</th><th>Status</th><th>WhatsApp</th></tr></thead><tbody id="orderTable"></tbody></table></div>
+      </div>
+
+      <div class="panel" id="tab-promos">
+        <h3>🎟️ Promo & Voucher</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0"><input id="promoAdminCode" placeholder="Kode, contoh: HEMAT10" style="flex:1"><select id="promoAdminType"><option value="percent">Persen (%)</option><option value="fixed">Potongan (Rp)</option></select><input id="promoAdminValue" type="number" min="0" placeholder="Nilai" style="width:110px"><button class="cta pink" onclick="savePromo()">Simpan Promo</button></div>
+        <div id="promoAdminRows"></div>
+      </div>
+
+      <div class="panel" id="tab-customers">
+        <h3>👥 Pelanggan</h3>
+        <div style="overflow:auto"><table class="table"><thead><tr><th>Nama</th><th>WhatsApp</th><th>Alamat</th><th>Transaksi</th><th>Total Belanja</th></tr></thead><tbody id="customerRows"></tbody></table></div>
+      </div>
+
+      <div class="panel" id="tab-reports">
+        <h3>📊 Laporan Penjualan</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:end;margin:12px 0"><label>Dari<br><input id="reportStart" type="date"></label><label>Sampai<br><input id="reportEnd" type="date"></label><button class="cta pink" onclick="loadReport()">Tampilkan</button><button class="cta" onclick="exportReport()">Export CSV</button></div>
+        <div id="reportSummary" class="stats"></div>
+        <div style="overflow:auto"><table class="table"><thead><tr><th>ID</th><th>Tanggal</th><th>Pelanggan</th><th>Bayar</th><th>Total</th></tr></thead><tbody id="reportRows"></tbody></table></div>
       </div>
     </div>
   </div>
@@ -603,8 +621,7 @@ function renderCustomers(rows){const el=$("customerRows");if(!el)return;el.inner
 function showTab(id,btn){
   document.querySelectorAll(".panel").forEach(x=>x.classList.remove("show"));
   document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
-  const targetMap={promos:"tab-promos",customers:"tab-customers",reports:"tab-reports"};
-  const target=$(targetMap[id]||id);
+  const target=$(id);
   if(target) target.classList.add("show");
   if(btn) btn.classList.add("active");
 }
