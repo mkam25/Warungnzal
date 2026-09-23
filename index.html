@@ -582,7 +582,7 @@ function resetAdminView(){
   document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
   const firstTab=document.querySelector(".tabs .tab");if(firstTab)firstTab.classList.add("active");
 }
-window.addEventListener("pageshow",async()=>{resetAdminView();if(token){$("login").style.display="none";$("admin").style.display="block";await refreshAdmin()}});
+window.addEventListener("pageshow",()=>{resetAdminView();});
 function logoutAdmin(){token=null;try{localStorage.removeItem("nzal_admin_token");sessionStorage.removeItem("nzal_admin_token")}catch(e){}$("admin").style.display="none";$("login").style.display="block";$("pass").value="";$("adminModal").classList.remove("on");document.querySelectorAll(".panel").forEach(x=>x.classList.remove("show"));const dash=$("dash");if(dash)dash.classList.add("show")}
 
 function openAdmin(){$("adminModal").classList.add("on");$("pass").focus()}
