@@ -11,19 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Install dependencies
-        run: npm install
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - name: Deploy to Netlify
-        uses: netlify/actions/cli@master
+        uses: netlify/actions/cli@3185065f4ab2f6df6f2ef41ee013626e1c02a426
         with:
           args: deploy --prod
         env:
