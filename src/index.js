@@ -215,7 +215,7 @@ export default {
         const max = await env.DB.prepare("SELECT COALESCE(MAX(id),0) AS m FROM products").first();
         const id = Number(max.m)+1;
         await env.DB.prepare("INSERT INTO products (id,name,price,emoji,bg,description,image,category,stock,reorder_level) VALUES (?,?,?,?,?,?,?,?,?,?)")
-          .bind(id,String(p.name||"Produk").trim(),Math.max(0,Number(p.price)||0),String(p.emoji||"🍦"),String(p.bg||"#f7c6d9"),String(p.description||""),image,Math.max(0,Math.round(Number(p.stock)||0)),Math.max(0,Math.round(Number(p.reorder_level)||5))).run();
+          .bind(id,String(p.name||"Produk").trim(),Math.max(0,Number(p.price)||0),String(p.emoji||"🍦"),String(p.bg||"#f7c6d9"),String(p.description||""),image,String(p.category||"Lainnya"),Math.max(0,Math.round(Number(p.stock)||0)),Math.max(0,Math.round(Number(p.reorder_level)||5))).run();
         return json({ok:true});
       }
 
@@ -241,7 +241,7 @@ export default {
       }
 
       if (action === "update-status") {
-        const allowed = ["Baru","Diproses","Selesai"];
+        const allowed = ["Baru","Diproses","Siap","Selesai"];
         const status = allowed.includes(body.status) ? body.status : "Baru";
         await env.DB.prepare("UPDATE orders SET status=? WHERE id=?").bind(status,String(body.id)).run();
         return json({ok:true});
