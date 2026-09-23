@@ -93,6 +93,32 @@ export default {
     try {
       await init(env.DB);
 
+      if (request.method === "GET" && url.pathname.startsWith("/api/image/")) {
+        const id = Number(url.pathname.split("/").pop());
+        if (!Number.isInteger(id) || id < 1) return new Response("Not found",{status:404});
+        const row = await env.DB.prepare("SELECT image FROM products WHERE id=? LIMIT 1").bind(id).first();
+        const data = String(row?.image || "");
+        if (!data.startsWith("data:image/")) return new Response("Image not found",{status:404});
+        const comma = data.indexOf(",");
+        if (comma < 0) return new Response("Invalid image",{status:500});
+        const header = data.slice(0, comma);
+        const base64 = data.slice(comma + 1);
+        const mime = (header.match(/^data:([^;]+);base64$/i) || [,"image/jpeg"])[1];
+        try {
+          const binary = atob(base64);
+          const bytes = new Uint8Array(binary.length);
+          for (let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
+          return new Response(bytes, {
+            headers: {
+              "Content-Type": mime,
+              "Cache-Control": "public, max-age=31536000, immutable"
+            }
+          });
+        } catch (e) {
+          return new Response("Invalid image data",{status:500});
+        }
+      }
+
       if (request.method === "GET" && url.pathname === "/api/debug-images") {
         const rows = await env.DB.prepare("SELECT id,name,image FROM products ORDER BY id").all();
         return json({ok:true,products:(rows.results||[]).map(p=>({id:p.id,name:p.name,hasImage:!!p.image,imageLength:String(p.image||"").length,prefix:String(p.image||"").slice(0,30)}))});
