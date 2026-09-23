@@ -24,7 +24,15 @@ jobs:
       - name: Deploy to Netlify
         uses: netlify/actions/cli@3185065f4ab2f6df6f2ef41ee013626e1c02a426
         with:
-          args: deploy --prod --dir=. --site=warungnzals.netlify.app
+          args: deploy --prod --dir=. --site="$NETLIFY_SITE_ID"
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+      - name: Verify live production site
+        run: |
+          sleep 8
+          curl -fsSL --retry 5 --retry-delay 3 https://warungnzals.netlify.app/ -o /tmp/live.html
+          grep -q "WARUNG NZAL • MENU AKTIF • DEPLOY TERBARU" /tmp/live.html
+          grep -q "Coklat" /tmp/live.html
+          echo "OK: domain live sudah menyajikan deploy terbaru Warung Nzal"
