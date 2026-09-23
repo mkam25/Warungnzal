@@ -502,7 +502,7 @@ async let orderFilter="Semua";
 function setOrderFilter(status,btn){orderFilter=status;document.querySelectorAll("#orderFilterBox button").forEach(x=>x.classList.remove("active"));if(btn)btn.classList.add("active");renderAdminOrders((adminData&&adminData.orders)||[]);}
 function renderAdminOrders(orders){
  const filtered=orderFilter==="Semua"?orders:orders.filter(o=>String(o.status||"Baru")===orderFilter);
- $("orderTable").innerHTML=filtered.length?filtered.map(o=>{const s=o.status||"Baru";return '<tr class="'+(s==="Baru"?'order-new':'')+'"><td><b>'+escapeHtml(o.id)+'</b><br><small>'+new Date(o.created_at).toLocaleString("id-ID")+'</small></td><td><b>'+escapeHtml(o.customer_name||"-")+'</b><br><small>'+escapeHtml(o.customer_phone||"")+'</small></td><td>'+money(o.total)+'</td><td>'+escapeHtml(o.payment_method||"Tunai")+'</td><td><select class="status status-'+statusClass(s)+'" onchange="updateStatus(\''+escapeAttr(o.id)+'\',this.value)"><option '+(s==="Baru"?"selected":"")+'>Baru</option><option '+(s==="Diproses"?"selected":"")+'>Diproses</option><option '+(s==="Siap"?"selected":"")+'>Siap</option><option '+(s==="Selesai"?"selected":"")+'>Selesai</option></select></td><td><button class="smallbtn green" onclick="waCustomer(\''+escapeAttr(o.customer_phone||"")+'\',\''+escapeAttr(o.id)+'\',\''+escapeAttr(s)+'\')">WA</button></td></tr>';}).join(""):'<tr><td colspan="6">Tidak ada pesanan pada status ini.</td></tr>';
+ $("orderTable").innerHTML=filtered.length?filtered.map(o=>{const s=o.status||"Baru";return '<tr class="'+(s==="Baru"?'order-new':'')+'"><td><b>'+escapeHtml(o.id)+'</b><br><small>'+new Date(o.created_at).toLocaleString("id-ID")+'</small></td><td><b>'+escapeHtml(o.customer_name||"-")+'</b><br><small>'+escapeHtml(o.customer_phone||"")+'</small></td><td>'+money(o.total)+'</td><td>'+escapeHtml(o.payment_method||"Tunai")+'</td><td><select class="status status-'+statusClass(s)+'" onchange="updateStatus(\''+escapeAttr(o.id)+'\',this.value)"><option '+(s==="Baru"?"selected":"")+'>Baru</option><option '+(s==="Diproses"?"selected":"")+'>Diproses</option><option '+(s==="Siap"?"selected":"")+'>Siap</option><option '+(s==="Selesai"?"selected":"")+'>Selesai</option><option '+(s==="Batal"?"selected":"")+'>Batal</option></select></td><td><button class="smallbtn green" onclick="waCustomer(\''+escapeAttr(o.customer_phone||"")+'\',\''+escapeAttr(o.id)+'\',\''+escapeAttr(s)+'\')">WA</button></td></tr>';}).join(""):'<tr><td colspan="6">Tidak ada pesanan pada status ini.</td></tr>';
 }
 function statusClass(s){return String(s||"Baru").toLowerCase().replace(/[^a-z]/g,"")} 
 function waCustomer(phone,id,status){
@@ -570,8 +570,9 @@ async function deleteProduct(id){
   const r=await api("delete-product",{id});if(!r.ok)return alert(r.message||"Gagal menghapus produk.");
   await load();await refreshAdmin();
 }
-async function updateStatus(id,status){
-  const r=await api("update-status",{id,status});if(!r.ok)alert(r.message||"Gagal memperbarui status.");
+async async function updateStatus(id,status){
+  if(status==="Batal" && !confirm("Batalkan pesanan ini? Stok akan dikembalikan ke menu."))return await refreshAdmin();
+  const r=await api("update-status",{id,status});if(!r.ok)alert(r.message||"Gagal memperbarui status.");else await refreshAdmin();
 }
 load();
 </script>
