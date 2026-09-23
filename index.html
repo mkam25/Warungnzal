@@ -552,7 +552,7 @@ function renderReceipt(o){
     '<div class="receipt-row"><span>Pemesan</span><b>'+escapeHtml(o.customer_name||"")+'</b></div>'+
     '<div class="receipt-row"><span>WhatsApp</span><span>'+escapeHtml(o.customer_phone||"")+'</span></div>'+
     '<div class="receipt-row"><span>Pembayaran</span><b>'+escapeHtml(o.payment_method||"Tunai")+'</b></div>'+
-    (o.payment_method==="Tunai"?'<div class="receipt-row"><span>Dibayar</span><span>'+money(o.paid)+'</span></div><div class="receipt-row"><span>Kembalian</span><b>'+money(o.change_amount||0)+'</b></div>':"")+
+    (o.payment_method==="Tunai"?'<div class="receipt-row"><span>Dibayar</span><span>'+money(o.paid)+'</span></div><div class="receipt-row"><span>Kembalian</span><b>'+money(o.change_amount||0)+'</b></div>':'<div style="margin-top:10px;padding:10px;border-radius:10px;background:#fff5d8;color:#8a6200;text-align:center;font-weight:700">⏳ Menunggu pembayaran dikonfirmasi.</div>')+
     '<p style="text-align:center;margin:18px 0 4px">Terima kasih ❤️</p>';
 }
 function closeReceipt(){$("receiptModal").classList.remove("on")}
