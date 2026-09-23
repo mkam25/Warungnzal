@@ -1,40 +1,335 @@
 <!doctype html>
-<html lang="id"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#ff3f86"><title>Warung Nzal</title>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#ff3f86">
+<title>Warung Nzal</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap');
-:root{--p:#ff3f86;--b:#4a2418;--g:#19b957;--line:#f5dce5}*{box-sizing:border-box}body{margin:0;background:linear-gradient(#fffaf1,#fff0f6);color:var(--b);font-family:Poppins,Arial,sans-serif}.top{background:var(--p);color:#fff;text-align:center;padding:8px;font-size:13px;font-weight:700}nav{position:sticky;top:0;z-index:20;background:#fffdf9ee;backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}.nav{max-width:1100px;margin:auto;padding:11px 15px;display:flex;justify-content:space-between;align-items:center}.logo{font:800 27px 'Baloo 2';color:var(--p)}button{font:inherit}.pill{border:0;border-radius:99px;padding:10px 14px;font-weight:700;cursor:pointer}.admin{background:#fff0f5;color:var(--p)}.cart{background:var(--b);color:#fff;margin-left:6px}main{max-width:1100px;margin:auto;padding:18px}.hero{background:#fff;border-radius:27px;overflow:hidden;box-shadow:0 10px 30px #5c291614}.hero img{width:100%;display:block}.actions{text-align:center;padding:15px}.cta{border:0;border-radius:99px;padding:12px 20px;margin:4px;font-weight:800;cursor:pointer}.pink{background:var(--p);color:#fff}.green{background:var(--g);color:#fff}.title{text-align:center;margin:30px 0 18px}.title h1,h2,h3{font-family:'Baloo 2';margin:0}.title h1{font-size:36px}.title p{font-size:14px;color:#876c61}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:11px;box-shadow:0 8px 25px #5c291410}.pic{height:145px;border-radius:16px;background:linear-gradient(135deg,#fff0e3,var(--bg));display:grid;place-items:center}.ice{width:105px;height:72px;background:var(--flavor);border-radius:15px 15px 20px 20px;box-shadow:0 9px 0 #c98b42,0 13px 20px #0002}.card h3{font-size:22px;margin-top:8px}.price{color:var(--p);font-weight:800}.sub{font-size:12px;color:#92756b;margin-bottom:9px}.add{width:100%;border:0;border-radius:12px;padding:10px;background:#fff0f5;color:var(--p);font-weight:800;cursor:pointer}.add:hover{background:var(--p);color:#fff}.info{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:22px}.info div{background:#fff;padding:16px;border-radius:18px;text-align:center;border:1px solid var(--line)}footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:28px}.drawer,.modal{position:fixed;z-index:60}.overlay{position:fixed;inset:0;background:#0007;z-index:50;display:none}.overlay.on{display:block}.drawer{right:0;top:0;width:min(430px,95vw);height:100%;background:#fff;transform:translateX(110%);transition:.25s;display:flex;flex-direction:column}.drawer.on{transform:none}.head{padding:15px;border-bottom:1px solid #eee;display:flex;justify-content:space-between}.close{border:0;border-radius:50%;width:37px;height:37px;cursor:pointer}.list{padding:14px;overflow:auto;flex:1}.item{display:flex;justify-content:space-between;border-bottom:1px solid #eee;padding:12px 0}.qty button{border:0;background:#ffe9f1;color:var(--p);border-radius:8px;width:28px;height:28px}.foot{padding:14px;border-top:1px solid #eee}.total{display:flex;justify-content:space-between;font-size:19px;font-weight:800;margin-bottom:10px}.full{width:100%;padding:13px;border:0;border-radius:13px;font-weight:800;cursor:pointer}.modal{inset:0;background:#0007;display:none;align-items:center;justify-content:center;padding:15px}.modal.on{display:flex}.box{width:min(900px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:22px;padding:18px}.row{display:flex;gap:8px;flex-wrap:wrap}.row input,.row select{padding:10px;border:1px solid #ddd;border-radius:10px}.tabs{margin:14px 0}.tab{border:0;background:#f7eef1;padding:9px 12px;border-radius:9px;margin-right:5px;font-weight:700}.active{background:var(--p)!important;color:#fff}.panel{display:none}.panel.show{display:block}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.stat{padding:14px;border-radius:15px;background:#fff5f8;border:1px solid var(--line)}.stat b{font-size:21px;display:block}.table{width:100%;border-collapse:collapse}.table th,.table td{padding:9px;border-bottom:1px solid #eee;text-align:left;white-space:nowrap}.danger{border:0;background:#ffe5e9;color:#b51d40;border-radius:8px;padding:7px}.status{padding:7px;border-radius:8px;border:1px solid #ddd}@media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){main{padding:10px}.grid{gap:9px}.pic{height:120px}.info{grid-template-columns:1fr}.admin{display:none}}
-</style></head><body>
+:root{--p:#ff3f86;--b:#4a2418;--g:#19b957;--line:#f5dce5}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:linear-gradient(#fffaf1,#fff0f6);color:var(--b);font-family:Poppins,Arial,sans-serif}
+.top{background:var(--p);color:#fff;text-align:center;padding:8px;font-size:13px;font-weight:700}
+nav{position:sticky;top:0;z-index:20;background:#fffdf9ee;backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav{max-width:1100px;margin:auto;padding:11px 15px;display:flex;justify-content:space-between;align-items:center}
+.logo{font:800 27px 'Baloo 2';color:var(--p)}
+button{font:inherit}.pill{border:0;border-radius:99px;padding:10px 14px;font-weight:700;cursor:pointer}
+.admin{background:#fff0f5;color:var(--p)}.cart{background:var(--b);color:#fff;margin-left:6px}
+main{max-width:1100px;margin:auto;padding:18px}
+.hero{background:#fff;border-radius:27px;overflow:hidden;box-shadow:0 10px 30px #5c291614}.hero img{width:100%;display:block}
+.actions{text-align:center;padding:15px}.cta{border:0;border-radius:99px;padding:12px 20px;margin:4px;font-weight:800;cursor:pointer}
+.pink{background:var(--p);color:#fff}.green{background:var(--g);color:#fff}
+.title{text-align:center;margin:30px 0 18px}.title h1,h2,h3{font-family:'Baloo 2';margin:0}
+.title h1{font-size:36px}.title p{font-size:14px;color:#876c61}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}
+.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:11px;box-shadow:0 8px 25px #5c291410}
+.pic{height:145px;border-radius:16px;background:linear-gradient(135deg,#fff0e3,var(--bg));display:grid;place-items:center}
+.ice{width:105px;height:72px;background:var(--flavor);border-radius:15px 15px 20px 20px;box-shadow:0 9px 0 #c98b42,0 13px 20px #0002}
+.card h3{font-size:22px;margin-top:8px}.price{color:var(--p);font-weight:800}
+.sub{font-size:12px;color:#92756b;margin-bottom:9px}.add{width:100%;border:0;border-radius:12px;padding:10px;background:#fff0f5;color:var(--p);font-weight:800;cursor:pointer}
+.add:hover{background:var(--p);color:#fff}
+.info{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:22px}
+.info div{background:#fff;padding:16px;border-radius:18px;text-align:center;border:1px solid var(--line)}
+footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:28px}
+.drawer,.modal{position:fixed;z-index:60}.overlay{position:fixed;inset:0;background:#0007;z-index:50;display:none}
+.overlay.on{display:block}.drawer{right:0;top:0;width:min(430px,95vw);height:100%;background:#fff;transform:translateX(110%);transition:.25s;display:flex;flex-direction:column}
+.drawer.on{transform:none}.head{padding:15px;border-bottom:1px solid #eee;display:flex;justify-content:space-between}
+.close{border:0;border-radius:50%;width:37px;height:37px;cursor:pointer}.list{padding:14px;overflow:auto;flex:1}
+.item{display:flex;justify-content:space-between;border-bottom:1px solid #eee;padding:12px 0}.qty button{border:0;background:#ffe9f1;color:var(--p);border-radius:8px;width:28px;height:28px}
+.foot{padding:14px;border-top:1px solid #eee}.total{display:flex;justify-content:space-between;font-size:19px;font-weight:800;margin-bottom:10px}
+.full{width:100%;padding:13px;border:0;border-radius:13px;font-weight:800;cursor:pointer}
+.modal{inset:0;background:#0007;display:none;align-items:center;justify-content:center;padding:15px}.modal.on{display:flex}
+.box{width:min(900px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:22px;padding:18px}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row input,.row select{padding:10px;border:1px solid #ddd;border-radius:10px}
+.tabs{margin:14px 0}.tab{border:0;background:#f7eef1;padding:9px 12px;border-radius:9px;margin-right:5px;font-weight:700}
+.active{background:var(--p)!important;color:#fff}.panel{display:none}.panel.show{display:block}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.stat{padding:14px;border-radius:15px;background:#fff5f8;border:1px solid var(--line)}
+.stat b{font-size:21px;display:block}.table{width:100%;border-collapse:collapse}.table th,.table td{padding:9px;border-bottom:1px solid #eee;text-align:left;white-space:nowrap}
+.danger{border:0;background:#ffe5e9;color:#b51d40;border-radius:8px;padding:7px}.status{padding:7px;border-radius:8px;border:1px solid #ddd}
+.empty{grid-column:1/-1;background:#fff;border:1px solid var(--line);border-radius:18px;padding:25px;text-align:center}
+@media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){main{padding:10px}.grid{gap:9px}.pic{height:120px}.info{grid-template-columns:1fr}.admin{display:none}.title h1{font-size:30px}}
+</style>
+</head>
+<body>
 <div class="top">🍦 WARUNG NZAL • ICE CREAM GABIN • MULAI 10K</div>
-<nav><div class="nav"><div class="logo">🍨 Warung Nzal</div><div><button class="pill admin" onclick="openAdmin()">⚙️ Admin</button><button class="pill cart" onclick="openCart()">🛒 <span id="count">0</span></button></div></div></nav>
-<main><section class="hero"><img src="poster-warung-nzal.jpg" alt="Warung Nzal"><div class="actions"><a class="cta pink" href="#menu">🍦 Lihat Menu</a><a class="cta green" target="_blank" href="https://wa.me/6281953154549?text=Halo%20Warung%20Nzal%2C%20saya%20mau%20pesan.">💬 WhatsApp</a></div></section>
-<section id="menu"><div class="title"><h1>Pilih Rasa Favorit 😋</h1><p>Pesanan akan tersimpan di sistem dan diteruskan ke WhatsApp.</p></div><div class="grid" id="products"></div><div class="info"><div>🧊<b>Segar & Dingin</b><br><small>Pas untuk cuaca panas.</small></div><div>❤️<b>Rasa Pilihan</b><br><small>Dibuat untuk bikin nagih.</small></div><div>💬<b>Order Mudah</b><br><small>Checkout via WhatsApp.</small></div></div></section></main>
+
+<nav>
+  <div class="nav">
+    <div class="logo">🍨 Warung Nzal</div>
+    <div>
+      <button class="pill admin" onclick="openAdmin()">⚙️ Admin</button>
+      <button class="pill cart" onclick="openCart()">🛒 <span id="count">0</span></button>
+    </div>
+  </div>
+</nav>
+
+<main>
+<section class="hero">
+  <img src="poster-warung-nzal.jpg" alt="Warung Nzal">
+  <div class="actions">
+    <button class="cta pink" type="button" onclick="goToMenu()">🍦 Lihat Menu</button>
+    <a class="cta green" target="_blank" rel="noopener" href="https://wa.me/6281953154549?text=Halo%20Warung%20Nzal%2C%20saya%20mau%20pesan">💬 WhatsApp</a>
+  </div>
+</section>
+
+<section id="menu">
+  <div class="title">
+    <h1>Pilih Rasa Favorit 😋</h1>
+    <p>Pesanan akan tersimpan di sistem dan diteruskan ke WhatsApp.</p>
+  </div>
+  <div class="grid" id="products"></div>
+  <div class="info">
+    <div>🧊<b>Segar & Dingin</b><br><small>Pas untuk cuaca panas.</small></div>
+    <div>❤️<b>Rasa Pilihan</b><br><small>Dibuat untuk bikin nagih.</small></div>
+    <div>💬<b>Order Mudah</b><br><small>Checkout via WhatsApp.</small></div>
+  </div>
+</section>
+</main>
+
 <footer><h2>Warung Nzal</h2>Ice Cream Gabin Aneka Rasa<br>📱 0819-5315-4549</footer>
-<div class="overlay" id="overlay" onclick="closeCart()"></div><aside class="drawer" id="drawer"><div class="head"><h2>🛒 Keranjang</h2><button class="close" onclick="closeCart()">×</button></div><div class="list" id="cartList"></div><div class="foot"><div class="total"><span>Total</span><span id="total">Rp0</span></div><button class="full green" onclick="checkout()">💬 Checkout WhatsApp</button></div></aside>
-<div class="modal" id="adminModal"><div class="box"><div class="head"><h2>⚙️ Admin Warung Nzal</h2><button class="close" onclick="closeAdmin()">×</button></div>
-<div id="login"><p>Login admin.</p><input id="pass" type="password" placeholder="Password" style="width:100%;padding:12px;border:1px solid #ddd;border-radius:10px"><button class="cta pink" style="width:100%" onclick="login()">Masuk</button></div>
-<div id="admin" style="display:none"><div class="tabs"><button class="tab active" onclick="showTab('dash',this)">Dashboard</button><button class="tab" onclick="showTab('menuAdmin',this)">Menu</button><button class="tab" onclick="showTab('orders',this)">Pesanan</button></div>
-<div class="panel show" id="dash"><div class="stats"><div class="stat">Produk<b id="sProd">0</b></div><div class="stat">Pesanan<b id="sOrder">0</b></div><div class="stat">Omzet<b id="sSales">Rp0</b></div></div></div>
-<div class="panel" id="menuAdmin"><h3>Tambah Produk</h3><div class="row"><input id="n" placeholder="Nama"><input id="p" type="number" value="10000"><input id="e" placeholder="Emoji"><select id="bg"><option value="#b96f45">Coklat</option><option value="#f27fa6">Strawberry</option><option value="#e8d6a4">Vanilla</option><option value="#73b45b">Hijau</option><option value="#b7b7b7">Cookies</option></select><button class="cta pink" onclick="addProduct()">Tambah</button></div><div style="overflow:auto;margin-top:15px"><table class="table"><tbody id="menuTable"></tbody></table></div></div>
-<div class="panel" id="orders"><div style="overflow:auto"><table class="table"><tbody id="orderTable"></tbody></table></div></div></div></div></div>
+
+<div class="overlay" id="overlay" onclick="closeCart()"></div>
+<aside class="drawer" id="drawer">
+  <div class="head"><h2>🛒 Keranjang</h2><button class="close" onclick="closeCart()">×</button></div>
+  <div class="list" id="cartList"></div>
+  <div class="foot"><div class="total"><span>Total</span><span id="total">Rp0</span></div>
+    <button class="full green" onclick="checkout()">💬 Checkout WhatsApp</button>
+  </div>
+</aside>
+
+<div class="modal" id="adminModal">
+  <div class="box">
+    <div class="head"><h2>⚙️ Admin Warung Nzal</h2><button class="close" onclick="closeAdmin()">×</button></div>
+    <div id="login">
+      <p>Login admin.</p>
+      <input id="pass" type="password" placeholder="Password" style="width:100%;padding:12px;border:1px solid #ddd;border-radius:10px">
+      <button class="cta pink" style="width:100%" onclick="login()">Masuk</button>
+    </div>
+    <div id="admin" style="display:none">
+      <div class="tabs">
+        <button class="tab active" onclick="showTab('dash',this)">Dashboard</button>
+        <button class="tab" onclick="showTab('menuAdmin',this)">Menu</button>
+        <button class="tab" onclick="showTab('orders',this)">Pesanan</button>
+      </div>
+      <div class="panel show" id="dash"><div class="stats">
+        <div class="stat">Produk<b id="sProd">0</b></div>
+        <div class="stat">Pesanan<b id="sOrder">0</b></div>
+        <div class="stat">Omzet<b id="sSales">Rp0</b></div>
+      </div></div>
+
+      <div class="panel" id="menuAdmin">
+        <h3>Tambah Produk</h3>
+        <div class="row">
+          <input id="n" placeholder="Nama"><input id="p" type="number" value="10000">
+          <input id="e" placeholder="Emoji">
+          <select id="bg">
+            <option value="#b96f45">Coklat</option><option value="#f27fa6">Strawberry</option>
+            <option value="#e8d6a4">Vanilla</option><option value="#73b45b">Hijau</option>
+            <option value="#b7b7b7">Cookies</option>
+          </select>
+          <button class="cta pink" onclick="addProduct()">Tambah</button>
+        </div>
+        <div style="overflow:auto;margin-top:15px"><table class="table"><tbody id="menuTable"></tbody></table></div>
+      </div>
+
+      <div class="panel" id="orders">
+        <div style="overflow:auto"><table class="table"><tbody id="orderTable"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-let products=[],cart=JSON.parse(localStorage.nzal_cart||"[]"),token=null,adminData={products:[],orders:[]};
-const $=id=>document.getElementById(id),money=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(n);
-async function api(action,data={}){let r=await fetch("/.netlify/functions/api",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action,...data})});return r.json()}
-async function load(){let r=await fetch("/.netlify/functions/api");let j=await r.json();products=j.products||[];render()}
-function render(){ $("products").innerHTML=products.map(p=>`<article class="card"><div class="pic" style="--bg:${p.bg}"><div class="ice" style="--flavor:${p.bg}"></div></div><h3>${p.emoji} ${p.name}</h3><div class="price">${money(p.price)}</div><div class="sub">Ice Cream Gabin</div><button class="add" onclick="add(${p.id})">+ Tambah</button></article>`).join("");renderCart()}
-function add(id){let x=cart.find(a=>a.id===id);x?x.qty++:cart.push({id,qty:1});localStorage.nzal_cart=JSON.stringify(cart);renderCart();openCart()}
-function change(id,d){let x=cart.find(a=>a.id===id);if(!x)return;x.qty+=d;if(x.qty<1)cart=cart.filter(a=>a.id!==id);localStorage.nzal_cart=JSON.stringify(cart);renderCart()}
-function renderCart(){ $("count").textContent=cart.reduce((s,x)=>s+x.qty,0);let total=0;$("cartList").innerHTML=cart.length?cart.map(x=>{let p=products.find(a=>a.id===x.id);if(!p)return"";total+=p.price*x.qty;return `<div class="item"><div><b>${p.emoji} ${p.name}</b><br><small>${money(p.price)} × ${x.qty}</small></div><div class="qty"><button onclick="change(${x.id},-1)">−</button> ${x.qty} <button onclick="change(${x.id},1)">+</button></div></div>`}).join(""):"<p style='text-align:center;padding:40px'>🛒 Keranjang kosong.</p>";$("total").textContent=money(total)}
-function openCart(){$("drawer").classList.add("on");$("overlay").classList.add("on")}function closeCart(){$("drawer").classList.remove("on");$("overlay").classList.remove("on")}
-async function checkout(){if(!cart.length)return alert("Keranjang kosong.");let items=cart.map(x=>{let p=products.find(a=>a.id===x.id);return{name:p.name,qty:x.qty,price:p.price}}),total=items.reduce((s,x)=>s+x.qty*x.price,0);let j=await api("save-order",{token:"admin-session",order:{items,total}}); /* server accepts order; auth token is only needed for admin actions in next revision */ let text=["Halo Warung Nzal 👋","Saya mau pesan:","",...items.map(x=>`• ${x.name} x${x.qty} = ${money(x.qty*x.price)}`),"",`Total: ${money(total)}`,"","Nama: ","Alamat: ","Catatan: "];window.open("https://wa.me/6281953154549?text="+encodeURIComponent(text.join("\\n")),"_blank");cart=[];localStorage.nzal_cart="[]";renderCart()}
-function openAdmin(){$("adminModal").classList.add("on")}function closeAdmin(){$("adminModal").classList.remove("on")}
-async function login(){let j=await api("login",{password:$("pass").value});if(!j.ok)return alert("Password salah.");token=j.token;$("login").style.display="none";$("admin").style.display="block";loadAdmin()}
-function showTab(id,b){document.querySelectorAll(".panel").forEach(x=>x.classList.remove("show"));document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));$(id).classList.add("show");b.classList.add("active")}
-async function loadAdmin(){let j=await api("admin-data",{token});adminData=j;let sales=(j.orders||[]).reduce((s,o)=>s+o.total,0);$("sProd").textContent=j.products.length;$("sOrder").textContent=j.orders.length;$("sSales").textContent=money(sales);$("menuTable").innerHTML=j.products.map(p=>`<tr><td>${p.emoji} ${p.name}</td><td>${money(p.price)}</td><td><button class="danger" onclick="del(${p.id})">Hapus</button></td></tr>`).join("");$("orderTable").innerHTML=j.orders.slice().reverse().map(o=>`<tr><td>#${String(o.id).slice(-6)}</td><td>${(o.items||[]).map(x=>x.name+" x"+x.qty).join(", ")}</td><td>${money(o.total)}</td><td><select class="status" onchange="status(${o.id},this.value)"><option ${o.status==="Baru"?"selected":""}>Baru</option><option ${o.status==="Diproses"?"selected":""}>Diproses</option><option ${o.status==="Selesai"?"selected":""}>Selesai</option></select></td></tr>`).join("")}
-async function addProduct(){let name=$("n").value.trim();if(!name)return alert("Nama produk wajib diisi.");await api("add-product",{token,product:{name,price:Number($("p").value)||10000,emoji:$("e").value||"🍦",bg:$("bg").value}});$("n").value="";$("e").value="";await load();await loadAdmin()}
-async function del(id){if(confirm("Hapus produk?")){await api("delete-product",{token,id});await load();await loadAdmin()}}
-async function status(id,value){await api("update-status",{token,id,status:value});await loadAdmin()}
+const DEFAULT_PRODUCTS = [
+  {id:1,name:"Coklat",price:10000,emoji:"🍫",bg:"#b96f45"},
+  {id:2,name:"Cookies & Cream",price:10000,emoji:"🍪",bg:"#b7b7b7"},
+  {id:3,name:"Vanilla Regal",price:10000,emoji:"🍦",bg:"#e8d6a4"},
+  {id:4,name:"Milky Strawberry",price:10000,emoji:"🍓",bg:"#f27fa6"},
+  {id:5,name:"Tiramisu Brownies",price:10000,emoji:"☕",bg:"#8b624d"},
+  {id:6,name:"Matcha",price:10000,emoji:"🍵",bg:"#73b45b"},
+  {id:7,name:"Avocado",price:10000,emoji:"🥑",bg:"#65a95b"}
+];
+
+let products=[];
+let cart=JSON.parse(localStorage.nzal_cart||"[]");
+let token=null;
+let adminData={products:[],orders:[]};
+
+const $=id=>document.getElementById(id);
+const money=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(n);
+
+async function api(action,data={}){
+  try{
+    const r=await fetch("/.netlify/functions/api",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({action,...data})
+    });
+    return await r.json();
+  }catch(e){
+    return {ok:false,error:e.message};
+  }
+}
+
+async function load(){
+  try{
+    const r=await fetch("/.netlify/functions/api");
+    const j=await r.json();
+    products=Array.isArray(j.products)&&j.products.length ? j.products : DEFAULT_PRODUCTS;
+  }catch(e){
+    products=DEFAULT_PRODUCTS;
+  }
+  render();
+}
+
+function goToMenu(){
+  $("menu").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function render(){
+  $("products").innerHTML=products.map(p=>`
+    <article class="card">
+      <div class="pic" style="--bg:${p.bg}">
+        <div class="ice" style="--flavor:${p.bg}"></div>
+      </div>
+      <h3>${p.emoji||"🍦"} ${p.name}</h3>
+      <div class="price">${money(p.price)}</div>
+      <div class="sub">Ice Cream Gabin</div>
+      <button class="add" onclick="add(${p.id})">+ Tambah</button>
+    </article>
+  `).join("");
+  renderCart();
+}
+
+function add(id){
+  const x=cart.find(a=>a.id===id);
+  if(x)x.qty++; else cart.push({id,qty:1});
+  localStorage.nzal_cart=JSON.stringify(cart);
+  renderCart();
+  openCart();
+}
+
+function change(id,d){
+  const x=cart.find(a=>a.id===id);
+  if(!x)return;
+  x.qty+=d;
+  if(x.qty<1)cart=cart.filter(a=>a.id!==id);
+  localStorage.nzal_cart=JSON.stringify(cart);
+  renderCart();
+}
+
+function renderCart(){
+  $("count").textContent=cart.reduce((s,x)=>s+x.qty,0);
+  let total=0;
+  $("cartList").innerHTML=cart.length?cart.map(x=>{
+    const p=products.find(a=>a.id===x.id);
+    if(!p)return"";
+    total+=p.price*x.qty;
+    return `<div class="item"><div><b>${p.emoji||"🍦"} ${p.name}</b><br><small>${money(p.price)} × ${x.qty}</small></div>
+      <div class="qty"><button onclick="change(${x.id},-1)">−</button> ${x.qty} <button onclick="change(${x.id},1)">+</button></div></div>`;
+  }).join(""):"<p style='text-align:center;padding:40px'>🛒 Keranjang kosong.</p>";
+  $("total").textContent=money(total);
+}
+
+function openCart(){$("drawer").classList.add("on");$("overlay").classList.add("on")}
+function closeCart(){$("drawer").classList.remove("on");$("overlay").classList.remove("on")}
+
+async function checkout(){
+  if(!cart.length)return alert("Keranjang kosong.");
+  const items=cart.map(x=>{
+    const p=products.find(a=>a.id===x.id);
+    return p?{name:p.name,qty:x.qty,price:p.price}:null;
+  }).filter(Boolean);
+  const total=items.reduce((s,x)=>s+x.qty*x.price,0);
+
+  const j=await api("save-order",{order:{items,total}});
+  if(j && j.ok===false){
+    alert("Pesanan belum tersimpan di server, tetapi WhatsApp tetap bisa dibuka.");
+  }
+
+  const text=[
+    "Halo Warung Nzal 👋","Saya mau pesan:","",
+    ...items.map(x=>`• ${x.name} x${x.qty} = ${money(x.qty*x.price)}`),
+    "",`Total: ${money(total)}`,"","Nama: ","Alamat: ","Catatan: "
+  ];
+  window.open("https://wa.me/6281953154549?text="+encodeURIComponent(text.join("\n")),"_blank");
+  cart=[];
+  localStorage.nzal_cart="[]";
+  renderCart();
+}
+
+function openAdmin(){$("adminModal").classList.add("on")}
+function closeAdmin(){$("adminModal").classList.remove("on")}
+
+async function login(){
+  const j=await api("login",{password:$("pass").value});
+  if(!j.ok)return alert("Password salah atau server belum siap.");
+  token=j.token;
+  $("login").style.display="none";
+  $("admin").style.display="block";
+  loadAdmin();
+}
+
+function showTab(id,b){
+  document.querySelectorAll(".panel").forEach(x=>x.classList.remove("show"));
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  $(id).classList.add("show");
+  b.classList.add("active");
+}
+
+async function loadAdmin(){
+  const j=await api("admin-data",{token});
+  if(!j.ok)return alert("Sesi admin tidak valid.");
+  adminData=j;
+  const sales=(j.orders||[]).reduce((s,o)=>s+Number(o.total||0),0);
+  $("sProd").textContent=(j.products||[]).length;
+  $("sOrder").textContent=(j.orders||[]).length;
+  $("sSales").textContent=money(sales);
+
+  $("menuTable").innerHTML=(j.products||[]).map(p=>`
+    <tr><td>${p.emoji||"🍦"} ${p.name}</td><td>${money(p.price)}</td>
+    <td><button class="danger" onclick="del(${p.id})">Hapus</button></td></tr>
+  `).join("");
+
+  $("orderTable").innerHTML=(j.orders||[]).slice().reverse().map(o=>`
+    <tr><td>#${String(o.id).slice(-6)}</td>
+    <td>${(o.items||[]).map(x=>x.name+" x"+x.qty).join(", ")}</td>
+    <td>${money(o.total)}</td>
+    <td><select class="status" onchange="status(${o.id},this.value)">
+      <option ${o.status==="Baru"?"selected":""}>Baru</option>
+      <option ${o.status==="Diproses"?"selected":""}>Diproses</option>
+      <option ${o.status==="Selesai"?"selected":""}>Selesai</option>
+    </select></td></tr>
+  `).join("");
+}
+
+async function addProduct(){
+  const name=$("n").value.trim();
+  if(!name)return alert("Nama produk wajib diisi.");
+  const j=await api("add-product",{token,product:{
+    name,price:Number($("p").value)||10000,emoji:$("e").value||"🍦",bg:$("bg").value
+  }});
+  if(!j.ok)return alert("Gagal menambah produk.");
+  $("n").value="";$("e").value="";
+  await load();await loadAdmin();
+}
+
+async function del(id){
+  if(confirm("Hapus produk?")){
+    await api("delete-product",{token,id});
+    await load();await loadAdmin();
+  }
+}
+
+async function status(id,value){
+  await api("update-status",{token,id,status:value});
+  await loadAdmin();
+}
+
 load();
-</script></body></html>
+</script>
+</body>
+</html>
