@@ -315,7 +315,7 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
 </div>
 
 <script>
-async let trackedOrderId="",trackedOrderPhone="",trackedOrderTimer=null;
+let trackedOrderId="",trackedOrderPhone="",trackedOrderTimer=null;
 function statusLabel(s){return ({"Menunggu Pembayaran":"Menunggu Pembayaran","Dibayar":"Pembayaran Dikonfirmasi","Baru":"Pesanan Diterima","Diproses":"Sedang Diproses","Siap":"Pesanan Siap","Selesai":"Selesai","Batal":"Dibatalkan"}[String(s||"Baru")]||String(s||"Baru"))}
 function statusSteps(status){
   const order=String(status||"Baru");
