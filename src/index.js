@@ -171,6 +171,8 @@ export default {
           topMap[key]=(topMap[key]||0)+Number(i.qty||0);
         }));
         const topProducts=Object.entries(topMap).map(([name,qty])=>({name,qty})).sort((a,b)=>b.qty-a.qty).slice(0,5);
+        const statusCounts={Baru:0,Diproses:0,Siap:0,Selesai:0,Batal:0};
+        orders.forEach(o=>{const s=String(o.status||"Baru");if(Object.prototype.hasOwnProperty.call(statusCounts,s))statusCounts[s]++;});
         const url = new URL(request.url);
         const reportStart = url.searchParams.get("start");
         const reportEnd = url.searchParams.get("end");
@@ -190,7 +192,7 @@ export default {
         };
         return json({ok:true,promotions:promoRows.results||[],customers:customerRows.results||[],products:p.results,orders,stats:{
           todayOrders:todayOrders.length,salesToday,weekOrders:weekOrders.length,salesWeek,
-          topProducts
+          topProducts,statusCounts
         },report:{orders:reportOrders,summary:reportSummary}});
       }
 
