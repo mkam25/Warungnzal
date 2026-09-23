@@ -179,7 +179,6 @@ async function api(action,data={}){
   }catch(e){return {ok:false,error:e.message};}
 }
 
-<script>
 function renderProducts(){
   const box=$("products");
   if(!products.length){box.innerHTML='<div class="empty">Menu belum tersedia.</div>';return}
@@ -268,3 +267,6 @@ async function updateStatus(id,status){
 }
 load();
 </script>
+</script>
+</body>
+</html>
