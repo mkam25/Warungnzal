@@ -334,7 +334,7 @@ export default {
       }
 
       if (action === "update-status") {
-        const allowed = ["Menunggu Pembayaran","Baru","Diproses","Siap","Selesai","Batal"];
+        const allowed = ["Menunggu Pembayaran","Dibayar","Baru","Diproses","Siap","Selesai","Batal"];
         const status = allowed.includes(body.status) ? body.status : "Baru";
         const id=String(body.id||"");
         const order=await env.DB.prepare("SELECT id,status,items FROM orders WHERE id=? LIMIT 1").bind(id).first();
