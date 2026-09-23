@@ -48,7 +48,7 @@ async function init(db) {
   if (!orderNames.has("paid")) orderMigrations.push(db.prepare("ALTER TABLE orders ADD COLUMN paid INTEGER DEFAULT 0"));
   if (!orderNames.has("change_amount")) orderMigrations.push(db.prepare("ALTER TABLE orders ADD COLUMN change_amount INTEGER DEFAULT 0"));
   if (!orderNames.has("discount")) orderMigrations.push(db.prepare("ALTER TABLE orders ADD COLUMN discount INTEGER DEFAULT 0"));
-  if (!orderNames.has("promo_code")) orderMigrations.push(db.prepare("ALTER TABLE orders ADD COLUMN promo_code TEXT DEFAULT ''));
+  if (!orderNames.has("promo_code")) orderMigrations.push(db.prepare("ALTER TABLE orders ADD COLUMN promo_code TEXT DEFAULT ''"));
   if (orderMigrations.length) await db.batch(orderMigrations);
 
   // Seed defaults only once. Never recreate them just because an admin deleted all products.
