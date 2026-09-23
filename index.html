@@ -256,6 +256,10 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
         <div class="stat">Pesanan Hari Ini<b id="sOrder">0</b></div>
         <div class="stat">Omzet Hari Ini<b id="sSales">Rp0</b></div>
         <div class="stat">Omzet 7 Hari<b id="sWeekSales">Rp0</b></div>
+        <div class="stat">🆕 Baru<b id="sBaru">0</b></div>
+        <div class="stat">⚙️ Diproses<b id="sDiproses">0</b></div>
+        <div class="stat">📦 Siap<b id="sSiap">0</b></div>
+        <div class="stat">❌ Batal<b id="sBatal">0</b></div>
       </div>
       <div class="dashboard-note">Ringkasan penjualan diperbarui dari transaksi yang tersimpan di D1.</div>
       <div class="top-products"><h3>🔥 Produk Terlaris 7 Hari</h3><div id="topProducts"><div class="empty">Belum ada penjualan.</div></div></div>
@@ -498,7 +502,7 @@ async function login(){
   if(!r.ok){alert(r.message||"Password salah.");return}
   token=r.token;$("login").style.display="none";$("admin").style.display="block";await refreshAdmin();
 }
-async let orderFilter="Semua";
+let orderFilter="Semua";
 function setOrderFilter(status,btn){orderFilter=status;document.querySelectorAll("#orderFilterBox button").forEach(x=>x.classList.remove("active"));if(btn)btn.classList.add("active");renderAdminOrders((adminData&&adminData.orders)||[]);}
 function renderAdminOrders(orders){
  const filtered=orderFilter==="Semua"?orders:orders.filter(o=>String(o.status||"Baru")===orderFilter);
@@ -512,7 +516,7 @@ function waCustomer(phone,id,status){
   const msg=encodeURIComponent("Halo, pesanan "+id+" di Warung Nzal sekarang: "+status+".");
   window.open("https://wa.me/"+num+"?text="+msg,"_blank");
 }
-function refreshAdmin(){
+async function refreshAdmin(){
   const r=await api("admin-data"); if(!r.ok){alert(r.message||"Gagal mengambil data admin.");return} renderCustomers(r.customers||[]); renderPromoAdmin(r.promotions||[]);
   adminData=r;
   $("sProd").textContent=r.products.length;
@@ -520,6 +524,11 @@ function refreshAdmin(){
   $("sOrder").textContent=stats.todayOrders||0;
   $("sSales").textContent=money(stats.salesToday||0);
   $("sWeekSales").textContent=money(stats.salesWeek||0);
+  const sc=stats.statusCounts||{};
+  $("sBaru").textContent=sc.Baru||0;
+  $("sDiproses").textContent=sc.Diproses||0;
+  $("sSiap").textContent=sc.Siap||0;
+  $("sBatal").textContent=sc.Batal||0;
   const tops=Array.isArray(stats.topProducts)?stats.topProducts:[];
   $("topProducts").innerHTML=tops.length?tops.map((x,i)=>'<div class="top-product-row"><span>'+(i+1)+'. '+escapeHtml(x.name)+'</span><b>'+Number(x.qty||0)+' terjual</b></div>').join(''):'<div class="empty">Belum ada penjualan.</div>';
   $("menuTable").innerHTML=r.products.map(p=>{
