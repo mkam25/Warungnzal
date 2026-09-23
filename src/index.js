@@ -340,7 +340,7 @@ export default {
         const order=await env.DB.prepare("SELECT id,status,items,payment_method FROM orders WHERE id=? LIMIT 1").bind(id).first();
         if(!order)return json({ok:false,message:"Pesanan tidak ditemukan."},404);
         if(order.status==="Batal" && status!=="Batal")return json({ok:false,message:"Pesanan yang sudah dibatalkan tidak bisa diaktifkan kembali."},400);
-        if(["Diproses","Siap","Selesai"].includes(status) && ["QRIS","Transfer"].includes(String(order.payment_method||"")) && order.status!=="Dibayar"){
+        if(["QRIS","Transfer"].includes(String(order.payment_method||"")) && order.status==="Menunggu Pembayaran" && !["Dibayar","Batal"].includes(status)){\n    return json({ok:false,message:"Pembayaran QRIS/Transfer belum dikonfirmasi. Konfirmasi menjadi Dibayar terlebih dahulu."},400);\n  }\n  if(["Diproses","Siap","Selesai"].includes(status) && ["QRIS","Transfer"].includes(String(order.payment_method||"")) && order.status!=="Dibayar"){
           return json({ok:false,message:"Pembayaran QRIS/Transfer belum dikonfirmasi. Ubah status menjadi Dibayar terlebih dahulu."},400);
         }
         if(status==="Batal" && order.status!=="Batal"){
