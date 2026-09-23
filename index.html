@@ -534,7 +534,8 @@ function resetAdminView(){
   const firstTab=document.querySelector(".tabs .tab");if(firstTab)firstTab.classList.add("active");
 }
 window.addEventListener("pageshow",async()=>{resetAdminView();if(token){$("login").style.display="none";$("admin").style.display="block";await refreshAdmin()}});
-function logoutAdmin(){token=null;try{localStorage.removeItem("nzal_admin_token");sessionStorage.removeItem("nzal_admin_token")}catch(e){}$("admin").style.display="none";$("login").style.display="block";$("pass").value="";$("adminModal").classList.remove("on");document.querySelectorAll(".panel").forEach(x=>x.classList.remove("show"));const dash=$("dash");if(dash)dash.classList.add("show")}\nfunction openAdmin(){$("adminModal").classList.add("on");$("pass").focus()}
+function logoutAdmin(){token=null;try{localStorage.removeItem("nzal_admin_token");sessionStorage.removeItem("nzal_admin_token")}catch(e){}$("admin").style.display="none";$("login").style.display="block";$("pass").value="";$("adminModal").classList.remove("on");document.querySelectorAll(".panel").forEach(x=>x.classList.remove("show"));const dash=$("dash");if(dash)dash.classList.add("show")}
+function openAdmin(){$("adminModal").classList.add("on");$("pass").focus()}
 function closeAdmin(){$("adminModal").classList.remove("on")}
 async function login(){
   const pass=$("pass").value;
