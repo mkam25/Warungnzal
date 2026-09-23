@@ -154,7 +154,7 @@ export default {
 
       if (action === "admin-data") {
         const customerRows=await env.DB.prepare("SELECT phone,name,address,MAX(created_at) last_order,COUNT(*) orders,SUM(total) total_spent FROM orders WHERE customer_phone<>'' AND status<>'Batal' GROUP BY customer_phone ORDER BY last_order DESC LIMIT 500").all();
-        const promoRows=await env.DB.prepare("SELECT id,code,type,value,active FROM promotions ORDER BY id DESC LIMIT 50").all();
+        const promoRows=await env.DB.prepare("SELECT rowid AS id,code,type,value,active FROM promotions ORDER BY rowid DESC LIMIT 50").all();
         const p = await products(env.DB);
         const o = await env.DB.prepare("SELECT * FROM orders ORDER BY created_at DESC LIMIT 1000").all();
         const orders=o.results.map(x=>({...x,items:JSON.parse(x.items||"[]")}));
