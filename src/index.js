@@ -156,8 +156,14 @@ export default {
       if (!authorized(request,env)) return json({ok:false,message:"Sesi admin tidak valid."},401);
 
       if (action === "admin-data") {
-        const customerRows=await env.DB.prepare("SELECT phone,name,address,MAX(created_at) last_order,COUNT(*) orders,SUM(total) total_spent FROM orders WHERE customer_phone<>'' AND status<>'Batal' GROUP BY customer_phone ORDER BY last_order DESC LIMIT 500").all();
-        const promoRows=await env.DB.prepare("SELECT code,type,value,active FROM promotions ORDER BY code DESC LIMIT 50").all();
+        let customerRows={results:[]};
+        let promoRows={results:[]};
+        try {
+          customerRows=await env.DB.prepare("SELECT phone,name,address,MAX(created_at) last_order,COUNT(*) orders,SUM(total) total_spent FROM orders WHERE customer_phone<>'' AND status<>'Batal' GROUP BY customer_phone ORDER BY last_order DESC LIMIT 500").all();
+        } catch(e) { console.error("admin-data customers:",e); }
+        try {
+          promoRows=await env.DB.prepare("SELECT code,type,value,active FROM promotions ORDER BY code DESC LIMIT 50").all();
+        } catch(e) { console.error("admin-data promotions:",e); }
         const p = await products(env.DB);
         const o = await env.DB.prepare("SELECT * FROM orders ORDER BY created_at DESC LIMIT 1000").all();
         const orders=o.results.map(x=>{ let items=[]; try{ items=JSON.parse(x.items||"[]"); if(!Array.isArray(items)) items=[]; }catch(e){ items=[]; } return {...x,items}; });
