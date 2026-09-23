@@ -118,7 +118,25 @@ export default {
       if (action === "admin-data") {
         const p = await products(env.DB);
         const o = await env.DB.prepare("SELECT * FROM orders ORDER BY created_at DESC LIMIT 1000").all();
-        return json({ok:true,products:p.results,orders:o.results.map(x=>({...x,items:JSON.parse(x.items||"[]")}))});
+        const orders=o.results.map(x=>({...x,items:JSON.parse(x.items||"[]")}));
+        const now=new Date();
+        const today=now.toISOString().slice(0,10);
+        const weekStart=new Date(now); weekStart.setDate(now.getDate()-6);
+        const weekStartIso=weekStart.toISOString();
+        const todayOrders=orders.filter(x=>String(x.created_at||"").slice(0,10)===today && x.status!=="Batal");
+        const weekOrders=orders.filter(x=>String(x.created_at||"")>=weekStartIso && x.status!=="Batal");
+        const salesToday=todayOrders.reduce((n,x)=>n+Number(x.total||0),0);
+        const salesWeek=weekOrders.reduce((n,x)=>n+Number(x.total||0),0);
+        const topMap={};
+        weekOrders.forEach(o=>o.items.forEach(i=>{
+          const key=String(i.name||"Produk");
+          topMap[key]=(topMap[key]||0)+Number(i.qty||0);
+        }));
+        const topProducts=Object.entries(topMap).map(([name,qty])=>({name,qty})).sort((a,b)=>b.qty-a.qty).slice(0,5);
+        return json({ok:true,products:p.results,orders,stats:{
+          todayOrders:todayOrders.length,salesToday,weekOrders:weekOrders.length,salesWeek,
+          topProducts
+        }});
       }
 
       if (action === "add-product") {
