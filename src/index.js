@@ -139,12 +139,12 @@ export default {
         const customerName=String(body.customer?.name||"").trim();
         const customerPhone=String(body.customer?.phone||"").trim();
         const customerAddress=String(body.customer?.address||"").trim();
-        if(customerName && customerPhone){
-          await env.DB.prepare("INSERT INTO customers(name,phone,address,created_at) VALUES (?,?,?,?)").bind(customerName,customerPhone,customerAddress,new Date().toISOString()).run();
-        }
         for (const item of items) {
           const stock = await env.DB.prepare("SELECT stock FROM products WHERE id=?").bind(item.id).first();
           if (!stock || Number(stock.stock) < Number(item.qty)) return json({ok:false,message:"Stok produk tidak mencukupi. Silakan cek menu kembali."},409);
+        }
+        if(customerName && customerPhone){
+          await env.DB.prepare("INSERT INTO customers(name,phone,address,created_at) VALUES (?,?,?,?)").bind(customerName,customerPhone,customerAddress,new Date().toISOString()).run();
         }
         const statements = items.map(item => env.DB.prepare("UPDATE products SET stock=stock-? WHERE id=? AND stock>=?").bind(item.qty,item.id,item.qty));
         statements.push(env.DB.prepare("INSERT INTO orders (id,created_at,customer_name,customer_phone,customer_address,items,total,payment_method,paid,change_amount,status,discount,promo_code) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)")
