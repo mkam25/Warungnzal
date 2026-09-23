@@ -28,7 +28,7 @@ main{max-width:1240px;margin:auto;padding:24px}
 .pic{width:100%;height:auto;aspect-ratio:1/1;border-radius:16px;background:linear-gradient(135deg,#fff0e3,var(--bg));display:grid;place-items:center;overflow:hidden}
 .ice{width:105px;height:72px;background:var(--flavor);border-radius:15px 15px 20px 20px;box-shadow:0 9px 0 #c98b42,0 13px 20px #0002}
 .card h3{font-size:22px;margin-top:8px}.price{color:var(--p);font-weight:800}
-.sub{font-size:12px;color:#92756b;margin-bottom:9px}.add{width:100%;border:0;border-radius:12px;padding:10px;background:#fff0f5;color:var(--p);font-weight:800;cursor:pointer}
+.sub{font-size:12px;color:#92756b;margin-bottom:9px}.stock-badge{display:inline-block;margin:5px auto 0;padding:4px 9px;border-radius:99px;font-size:11px;font-weight:800}.stock-ok{background:#eaf9ef;color:#168943}.stock-low{background:#fff5d8;color:#9a6b00}.stock-out{background:#ffe8ed;color:#b51d40}.add{width:100%;border:0;border-radius:12px;padding:10px;background:#fff0f5;color:var(--p);font-weight:800;cursor:pointer}.add:disabled{background:#eee;color:#999;cursor:not-allowed}
 .add:hover{background:var(--p);color:#fff}
 .info{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:22px}
 .info div{background:#fff;padding:16px;border-radius:18px;text-align:center;border:1px solid var(--line)}
@@ -72,7 +72,8 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
 .card h3{order:1;margin:10px 12px 4px;text-align:center}
 .card .price{order:2;text-align:center}
 .card .sub{order:3;text-align:center}
-.card .add{order:4;margin-top:10px}
+.card .stock-badge{order:4}
+.card .add{order:5;margin-top:10px}
 .thumb{width:58px;height:58px;object-fit:cover;border-radius:10px;border:1px solid var(--line);background:#fff}
 .photo-input{max-width:180px;font-size:12px}
 .editbox{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
@@ -264,10 +265,12 @@ footer{margin-top:30px;background:var(--b);color:#fff;text-align:center;padding:
             <option value="#b7b7b7">Cookies</option>
           </select>
           <input id="photo" type="file" accept="image/*" class="photo-input">
+          <input id="stockNew" type="number" min="0" value="20" placeholder="Stok" style="width:90px">
+          <input id="reorderNew" type="number" min="0" value="5" placeholder="Min stok" style="width:95px">
           <button class="cta pink" onclick="addProduct()">Tambah</button>
         </div>
         <small style="display:block;margin-top:6px;color:#92756b">Foto bisa dipilih langsung dari HP. Sistem akan mengecilkan foto otomatis agar ringan.</small>
-        <div style="overflow:auto;margin-top:15px"><table class="table"><thead><tr><th>Foto</th><th>Produk</th><th>Harga</th><th>Emoji</th><th>Warna</th><th>Ganti Foto</th><th>Aksi</th></tr></thead><tbody id="menuTable"></tbody></table></div>
+        <div style="overflow:auto;margin-top:15px"><table class="table"><thead><tr><th>Foto</th><th>Produk</th><th>Harga</th><th>Emoji</th><th>Warna</th><th>Stok</th><th>Min</th><th>Ganti Foto</th><th>Aksi</th></tr></thead><tbody id="menuTable"></tbody></table></div>
       </div>
 
       <div class="panel" id="orders">
@@ -310,7 +313,10 @@ function renderProducts(){
   if(!products.length){box.innerHTML='<div class="empty">Menu belum tersedia.</div>';return}
   box.innerHTML=products.map(p=>{
     const photo=p.image ? '<img src="'+escapeAttr(p.image)+'" alt="'+escapeAttr(p.name)+'" style="width:100%;height:100%;object-fit:cover;object-position:center;border-radius:16px;display:block">' : '<div class="ice" style="--flavor:'+(p.bg||"#f7c6d9")+'"></div>';
-    return '<article class="card"><div class="pic" style="--bg:'+(p.bg||"#f7c6d9")+'">'+photo+'</div><h3>'+(p.emoji||"🍦")+' '+escapeHtml(p.name)+'</h3><div class="price">'+money(Number(p.price)||0)+'</div><div class="sub">'+escapeHtml(p.description||"Ice Cream Gabin")+'</div><button class="add" onclick="add('+Number(p.id)+')">+ Tambah</button></article>';
+    const stock=Math.max(0,Number(p.stock)||0);
+    const low=stock>0 && stock<=Math.max(0,Number(p.reorder_level)||5);
+    const badge=stock<=0?'<span class="stock-badge stock-out">Habis</span>':low?'<span class="stock-badge stock-low">Stok menipis • '+stock+'</span>':'<span class="stock-badge stock-ok">Stok '+stock+'</span>';
+    return '<article class="card"><div class="pic" style="--bg:'+(p.bg||"#f7c6d9")+'">'+photo+'</div><h3>'+(p.emoji||"🍦")+' '+escapeHtml(p.name)+'</h3><div class="price">'+money(Number(p.price)||0)+'</div><div class="sub">'+escapeHtml(p.description||"Ice Cream Gabin")+'</div>'+badge+'<button class="add" '+(stock<=0?'disabled':'')+' onclick="add('+Number(p.id)+')">'+(stock<=0?'Habis':' + Tambah')+'</button></article>';
   }).join("");
 }
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
@@ -346,6 +352,7 @@ async function load(){
 }
 function add(id){
   const p=products.find(x=>Number(x.id)===Number(id)); if(!p)return;
+  if(Number(p.stock||0)<=0)return alert("Produk sedang habis.");
   const x=cart.find(x=>Number(x.id)===Number(id));
   if(x)x.qty++; else cart.push({id:Number(p.id),qty:1});
   localStorage.nzal_cart=JSON.stringify(cart); renderCart(); openCart();
@@ -453,7 +460,7 @@ async function refreshAdmin(){
   $("topProducts").innerHTML=tops.length?tops.map((x,i)=>'<div class="top-product-row"><span>'+(i+1)+'. '+escapeHtml(x.name)+'</span><b>'+Number(x.qty||0)+' terjual</b></div>').join(''):'<div class="empty">Belum ada penjualan.</div>';
   $("menuTable").innerHTML=r.products.map(p=>{
     const thumb=p.image ? '<img class="thumb" src="'+escapeAttr(p.image)+'" alt="'+escapeAttr(p.name)+'">' : '<div class="thumb" style="display:grid;place-items:center;font-size:25px">'+(p.emoji||"🍦")+'</div>';
-    return '<tr><td>'+thumb+'</td><td><input id="mn'+p.id+'" value="'+escapeAttr(p.name)+'"></td><td><input id="mp'+p.id+'" type="number" value="'+Number(p.price||0)+'" style="width:95px"></td><td><input id="me'+p.id+'" value="'+escapeAttr(p.emoji||"🍦")+'" style="width:70px"></td><td><input id="mb'+p.id+'" type="color" value="'+(p.bg||"#f7c6d9")+'"></td><td><input id="mf'+p.id+'" type="file" accept="image/*" class="photo-input"><br><label><input id="mc'+p.id+'" type="checkbox"> Hapus</label></td><td><button class="smallbtn pink" onclick="editProduct('+p.id+')">Simpan</button> <button class="danger" onclick="deleteProduct('+p.id+')">Hapus</button></td></tr>';
+    return '<tr><td>'+thumb+'</td><td><input id="mn'+p.id+'" value="'+escapeAttr(p.name)+'"></td><td><input id="mp'+p.id+'" type="number" value="'+Number(p.price||0)+'" style="width:95px"></td><td><input id="me'+p.id+'" value="'+escapeAttr(p.emoji||"🍦")+'" style="width:70px"></td><td><input id="mb'+p.id+'" type="color" value="'+(p.bg||"#f7c6d9")+'"></td><td><input id="ms'+p.id+'" type="number" min="0" value="'+Number(p.stock||0)+'" style="width:75px"></td><td><input id="mr'+p.id+'" type="number" min="0" value="'+Number(p.reorder_level||5)+'" style="width:65px"></td><td><input id="mf'+p.id+'" type="file" accept="image/*" class="photo-input"><br><label><input id="mc'+p.id+'" type="checkbox"> Hapus</label></td><td><button class="smallbtn pink" onclick="editProduct('+p.id+')">Simpan</button> <button class="danger" onclick="deleteProduct('+p.id+')">Hapus</button></td></tr>';
   }).join("");
   $("orderTable").innerHTML=r.orders.length?r.orders.map(o=>'<tr><td><b>'+escapeHtml(o.id)+'</b><br>'+new Date(o.created_at).toLocaleString("id-ID")+'</td><td>'+money(o.total)+'</td><td>'+escapeHtml(o.payment_method||"Tunai")+'</td><td><select class="status" onchange="updateStatus(\''+escapeAttr(o.id)+'\',this.value)"><option '+(o.status==="Baru"?"selected":"")+'>Baru</option><option '+(o.status==="Diproses"?"selected":"")+'>Diproses</option><option '+(o.status==="Selesai"?"selected":"")+'>Selesai</option></select></td></tr>').join(""):'<tr><td>Belum ada pesanan.</td></tr>';
 }
@@ -465,11 +472,11 @@ function showTab(id,btn){
 async function addProduct(){
   try{
     const image=await compressImage($("photo").files[0]);
-    const p={name:$("n").value.trim(),price:Number($("p").value)||0,emoji:$("e").value.trim()||"🍦",bg:$("bg").value,image};
+    const p={name:$("n").value.trim(),price:Number($("p").value)||0,emoji:$("e").value.trim()||"🍦",bg:$("bg").value,image,stock:Math.max(0,Math.round(Number($("stockNew").value)||0)),reorder_level:Math.max(0,Math.round(Number($("reorderNew").value)||5))};
     if(!p.name)return alert("Nama produk wajib diisi.");
     const r=await api("add-product",{product:p});
     if(!r.ok)return alert(r.message||"Gagal menambah produk.");
-    $("n").value="";$("e").value="";$("photo").value="";
+    $("n").value="";$("e").value="";$("photo").value="";$("stockNew").value="20";$("reorderNew").value="5";
     await load();await refreshAdmin();
   }catch(e){alert(e.message||"Foto tidak bisa diproses.")}
 }
