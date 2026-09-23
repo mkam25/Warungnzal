@@ -98,6 +98,15 @@ export default {
         return json({ok:true,token:pass});
       }
 
+      if (action === "check-promo") {
+        const code=String(body.code||"").trim().toUpperCase();
+        const subtotal=Math.max(0,Math.round(Number(body.subtotal)||0));
+        const promo=await env.DB.prepare("SELECT code,type,value FROM promotions WHERE code=? AND active=1 LIMIT 1").bind(code).first();
+        if(!promo)return json({ok:false,message:"Kode promo tidak valid atau sudah tidak aktif."},400);
+        const discount=promo.type==="fixed"?Math.min(subtotal,Math.max(0,Number(promo.value)||0)):Math.min(subtotal,Math.round(subtotal*Math.max(0,Math.min(100,Number(promo.value)||0))/100));
+        return json({ok:true,discount,total:subtotal-discount,code:promo.code});
+      }
+
       if (action === "save-order") {
         const incoming = Array.isArray(body.items) ? body.items : [];
         const current = (await products(env.DB)).results;
